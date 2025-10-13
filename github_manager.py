@@ -20,8 +20,9 @@ class GitHubManager:
             "Accept": "application/vnd.github.v3+json"
         }
     
+    """Tạo repository mới trên GitHub"""
     def create_repository(self, repo_name: str, description: str = "", private: bool = False) -> Dict:
-        """Tạo repository mới trên GitHub"""
+        
         url = f"{self.api_base}/user/repos"
         data = {
             "name": repo_name,
@@ -39,9 +40,10 @@ class GitHubManager:
             return self.get_repository(repo_name)
         else:
             raise Exception(f"Lỗi tạo repository: {response.json()}")
-    
+   
+    """Lấy thông tin repository""" 
     def get_repository(self, repo_name: str) -> Dict:
-        """Lấy thông tin repository"""
+       
         url = f"{self.api_base}/repos/{self.username}/{repo_name}"
         response = requests.get(url, headers=self.headers)
         
@@ -49,7 +51,9 @@ class GitHubManager:
             return response.json()
         else:
             raise Exception(f"Repository không tồn tại: {repo_name}")
+   
     
+    """Tạo hoặc cập nhật file trong repository"""
     def create_or_update_file(self, repo_name: str, file_path: str, content: str, 
                               message: str, branch: str = "main") -> Dict:
         """Tạo hoặc cập nhật file trong repository"""
@@ -79,7 +83,9 @@ class GitHubManager:
             return response.json()
         else:
             raise Exception(f"Lỗi tạo/cập nhật file {file_path}: {response.json()}")
-    
+   
+   
+    """Push nhiều files lên repository trong 1 commit duy nhất sử dụng Git Tree API""" 
     def push_files_batch(self, repo_name: str, files: Dict[str, str], 
                         commit_message: str = "Initial commit from Dev Portal",
                         branch: str = "main") -> Dict:
@@ -168,8 +174,10 @@ class GitHubManager:
                 "fallback_to_individual": True
             }
     
+    
+    """Tạo commit đầu tiên cho repository mới"""
     def _create_initial_commit(self, repo_name: str, files: Dict[str, str], commit_message: str) -> Dict:
-        """Tạo commit đầu tiên cho repository mới"""
+        
         try:
             # 1. Create tree với tất cả files
             import base64
@@ -234,10 +242,12 @@ class GitHubManager:
                 "error": str(e)
             }
     
+    
+    """Push nhiều files lên repository - thử batch trước, fallback individual"""
     def push_files(self, repo_name: str, files: Dict[str, str], 
                    commit_message: str = "Initial commit from Dev Portal",
                    branch: str = "main") -> List[Dict]:
-        """Push nhiều files lên repository - thử batch trước, fallback individual"""
+        
         # Thử batch push trước
         batch_result = self.push_files_batch(repo_name, files, commit_message, branch)
         
@@ -254,9 +264,11 @@ class GitHubManager:
             print(f"Batch push failed: {batch_result['error']}, falling back to individual push")
             return self._push_files_individual(repo_name, files, commit_message, branch)
     
+    
+    """Fallback: Push từng file riêng lẻ"""
     def _push_files_individual(self, repo_name: str, files: Dict[str, str], 
                               commit_message: str, branch: str) -> List[Dict]:
-        """Fallback: Push từng file riêng lẻ"""
+        
         results = []
         
         for file_path, content in files.items():
@@ -283,9 +295,12 @@ class GitHubManager:
         
         return results
     
+    
+    
+    """Tạo repository và push code một lần"""
     def create_repository_and_push(self, repo_name: str, files: Dict[str, str],
                                    description: str = "", private: bool = False) -> Dict:
-        """Tạo repository và push code một lần"""
+        
         # Tạo hoặc lấy repository
         repo = self.create_repository(repo_name, description, private)
         
@@ -311,9 +326,11 @@ class GitHubManager:
             }
         }
     
+    
+    """Cập nhật K8s manifests trong Repository_B với multi-app structure"""
     def update_repository_b_manifests(self, repo_b_name: str, app_name: str, 
                                       manifests: Dict[str, str]) -> Dict:
-        """Cập nhật K8s manifests trong Repository_B với multi-app structure"""
+        
         results = []
         
         # Files cần SKIP (không push vào apps/)
@@ -362,8 +379,10 @@ class GitHubManager:
             "details": results
         }
     
+    
+    """Add secret to repository for GitHub Actions"""
     def add_repository_secret(self, repo_name: str, secret_name: str, secret_value: str) -> Dict:
-        """Add secret to repository for GitHub Actions"""
+       
         try:
             # Import thư viện để encrypt
             from base64 import b64encode
@@ -403,9 +422,11 @@ class GitHubManager:
         except Exception as e:
             return {"status": "error", "message": f"Error adding secret: {str(e)}"}
     
+    
+    """Trigger GitHub Actions workflow"""
     def trigger_workflow(self, repo_name: str, workflow_file: str = "ci-cd.yml", 
                         branch: str = "main") -> Dict:
-        """Trigger GitHub Actions workflow"""
+        
         url = f"{self.api_base}/repos/{self.username}/{repo_name}/actions/workflows/{workflow_file}/dispatches"
         data = {
             "ref": branch
@@ -418,8 +439,10 @@ class GitHubManager:
         else:
             return {"status": "error", "message": f"Failed to trigger workflow: {response.status_code}"}
     
+    
+    """Get latest workflow run status"""
     def get_latest_workflow_run(self, repo_name: str, workflow_file: str = "ci-cd.yml") -> Dict:
-        """Get latest workflow run status"""
+        
         try:
             url = f"{self.api_base}/repos/{self.username}/{repo_name}/actions/workflows/{workflow_file}/runs"
             response = requests.get(url, headers=self.headers, params={"per_page": 1})
@@ -444,6 +467,99 @@ class GitHubManager:
         except Exception as e:
             return {"status": "error", "message": f"Error: {str(e)}"}
     
+    
+    """Verify Repository_B đã được update bởi GitHub Actions"""
+    def verify_repository_b_updated(self, repo_b_name: str, app_name: str, 
+                                    expected_image_tag: str = None) -> Dict:
+        
+        try:
+            # 1. Get latest commit từ Repository_B
+            commits_url = f"{self.api_base}/repos/{self.username}/{repo_b_name}/commits"
+            params = {"per_page": 5}  # Lấy 5 commit gần nhất
+            
+            response = requests.get(commits_url, headers=self.headers, params=params)
+            response.raise_for_status()
+            commits = response.json()
+            
+            if not commits:
+                return {
+                    "status": "warning",
+                    "message": "No commits found in Repository_B"
+                }
+            
+            # 2. Check commit gần nhất có phải từ GitHub Actions không
+            latest_commit = commits[0]
+            commit_message = latest_commit["commit"]["message"]
+            commit_author = latest_commit["commit"]["author"]["name"]
+            commit_sha = latest_commit["sha"][:7]
+            
+            # GitHub Actions commit thường có format: "chore(production): update image to main-xxx [skip ci]"
+            is_from_github_actions = (
+                "GitHub Action" in commit_author or 
+                "chore(" in commit_message or
+                "[skip ci]" in commit_message
+            )
+            
+            if not is_from_github_actions:
+                return {
+                    "status": "warning",
+                    "message": f"Latest commit not from GitHub Actions. Author: {commit_author}",
+                    "last_commit": {
+                        "sha": commit_sha,
+                        "message": commit_message,
+                        "author": commit_author
+                    }
+                }
+            
+            # 3. Verify deployment.yaml đã được update
+            deployment_path = f"apps/{app_name}/deployment.yaml"
+            deployment_url = f"{self.api_base}/repos/{self.username}/{repo_b_name}/contents/{deployment_path}"
+            
+            try:
+                deployment_response = requests.get(deployment_url, headers=self.headers)
+                deployment_response.raise_for_status()
+                
+                # Decode content
+                import base64
+                content = base64.b64decode(deployment_response.json()["content"]).decode("utf-8")
+                
+                # Extract image tag từ deployment.yaml
+                import re
+                image_match = re.search(r'image:\s*ghcr\.io/[^:]+:([^\s]+)', content)
+                current_image_tag = image_match.group(1) if image_match else "unknown"
+                
+                return {
+                    "status": "success",
+                    "message": f"Repository_B updated successfully by GitHub Actions",
+                    "last_commit": {
+                        "sha": commit_sha,
+                        "message": commit_message,
+                        "author": commit_author
+                    },
+                    "deployment": {
+                        "path": deployment_path,
+                        "image_tag": current_image_tag
+                    }
+                }
+            except requests.exceptions.HTTPError as e:
+                if e.response.status_code == 404:
+                    return {
+                        "status": "warning",
+                        "message": f"Deployment file not found: {deployment_path}",
+                        "last_commit": {
+                            "sha": commit_sha,
+                            "message": commit_message
+                        }
+                    }
+                raise
+            
+        except Exception as e:
+            return {
+                "status": "error",
+                "message": f"Error verifying Repository_B: {str(e)}"
+            }
+    
+    """Đợi workflow hoàn thành với timeout"""
     def wait_for_workflow_completion(self, repo_name: str, workflow_file: str = "ci-cd.yml", 
                                      timeout: int = 600, check_interval: int = 10) -> Dict:
         """

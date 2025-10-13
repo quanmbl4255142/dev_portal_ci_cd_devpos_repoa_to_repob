@@ -1450,6 +1450,28 @@ async def generate_and_deploy(config: AutoDeployConfig):
                 result["steps"][-1]["message"] = workflow_result["message"]
                 result["steps"][-1]["workflow_url"] = workflow_result.get("html_url", "")
         
+        # Step 2.7: Verify Repository_B updated by GitHub Actions
+        if project_config.enable_cicd and config.repo_b_name:
+            result["steps"].append({"step": "verify_repo_b_updated", "status": "processing"})
+            
+            import time
+            time.sleep(3)  # Đợi GitHub Actions commit vào Repository_B
+            
+            # Verify Repository_B đã được update bởi GitHub Actions
+            try:
+                verify_result = gh_manager.verify_repository_b_updated(
+                    repo_b_name=config.repo_b_name,
+                    app_name=project_config.project_name.replace('_', '-'),
+                    expected_image_tag=None  # Sẽ check commit message từ GitHub Actions
+                )
+                
+                result["steps"][-1]["status"] = "success"
+                result["steps"][-1]["message"] = verify_result.get("message", "Repository_B updated successfully")
+                result["steps"][-1]["last_commit"] = verify_result.get("last_commit", {})
+            except Exception as e:
+                result["steps"][-1]["status"] = "warning"
+                result["steps"][-1]["message"] = f"Could not verify Repository_B update: {str(e)}"
+        
         # Step 3: Generate K8s manifests
         # Tạo manifests SAU KHI Docker image đã được build
         
