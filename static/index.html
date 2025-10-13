@@ -1,0 +1,335 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Django Dev Portal - Tự động tạo Django REST API Project</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .field-type-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .model-card {
+            border-left: 4px solid #667eea;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <i class="fas fa-code text-4xl"></i>
+                    <div>
+                        <h1 class="text-3xl font-bold">Django Dev Portal</h1>
+                        <p class="text-purple-200">Tự động tạo Django REST API Project với ArgoCD & CI/CD</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-sm text-purple-200">Powered by</div>
+                    <div class="font-semibold">FastAPI + Django + ArgoCD</div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Info Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 animate-fade-in">
+            <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                <div class="flex items-center space-x-4">
+                    <div class="bg-blue-100 rounded-full p-4">
+                        <i class="fas fa-rocket text-blue-600 text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800">Nhanh chóng</h3>
+                        <p class="text-gray-600 text-sm">Tạo project trong vài giây</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                <div class="flex items-center space-x-4">
+                    <div class="bg-green-100 rounded-full p-4">
+                        <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800">Đầy đủ tính năng</h3>
+                        <p class="text-gray-600 text-sm">REST API, Docker, CI/CD</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                <div class="flex items-center space-x-4">
+                    <div class="bg-purple-100 rounded-full p-4">
+                        <i class="fas fa-magic text-purple-600 text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800">Tự động hóa</h3>
+                        <p class="text-gray-600 text-sm">Auto deploy với ArgoCD</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Form Container -->
+        <div class="bg-white rounded-lg shadow-xl p-8 animate-fade-in">
+            <form id="projectForm">
+                <!-- Project Configuration -->
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                        <i class="fas fa-cog text-purple-600 mr-3"></i>
+                        Cấu hình Project
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-project-diagram mr-2"></i>Tên Django Project
+                            </label>
+                            <input type="text" id="projectName" required
+                                   placeholder="vd: django_api, my_project"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <p class="text-xs text-gray-500 mt-1">Tên project chính (folder chứa settings.py)</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-cube mr-2"></i>Tên Django App
+                            </label>
+                            <input type="text" id="appName" required
+                                   placeholder="vd: api, core"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <p class="text-xs text-gray-500 mt-1">Tên app chứa models và views</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fab fa-github mr-2"></i>GitHub Username
+                            </label>
+                            <input type="text" id="githubUsername"
+                                   placeholder="vd: your-username"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-link mr-2"></i>Git Repository URL
+                            </label>
+                            <input type="url" id="gitRepoUrl"
+                                   placeholder="https://github.com/username/repo.git"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fab fa-docker mr-2"></i>Docker Registry
+                            </label>
+                            <input type="text" id="dockerRegistry" value="ghcr.io"
+                                   placeholder="ghcr.io"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-code-branch mr-2"></i>Repository_B URL (Manifests)
+                            </label>
+                            <input type="url" id="repoBUrl"
+                                   placeholder="https://github.com/username/Repository_B.git"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex items-center space-x-6">
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" id="enableCors" checked
+                                   class="w-5 h-5 text-purple-600 rounded focus:ring-purple-500">
+                            <span class="text-sm font-medium text-gray-700">Enable CORS</span>
+                        </label>
+                        
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" id="enableCicd" checked
+                                   class="w-5 h-5 text-purple-600 rounded focus:ring-purple-500">
+                            <span class="text-sm font-medium text-gray-700">Enable CI/CD (GitHub Actions)</span>
+                        </label>
+                    </div>
+                </div>
+                <hr class="my-8">
+                <!-- Models Section -->
+                <div class="mb-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800 flex items-center">
+                            <i class="fas fa-database text-purple-600 mr-3"></i>
+                            Django Models
+                        </h2>
+                        <button type="button" onclick="addModel()" 
+                                class="px-6 py-2 btn-primary text-white rounded-lg font-semibold flex items-center space-x-2">
+                            <i class="fas fa-plus"></i>
+                            <span>Thêm Model</span>
+                        </button>
+                    </div>
+                    
+                    <div id="modelsContainer" class="space-y-6">
+                        <!-- Models will be added here -->
+                    </div>
+                </div>
+                <hr class="my-8">
+                <!-- Auto-Deploy Configuration -->
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                        <i class="fas fa-rocket text-purple-600 mr-3"></i>
+                        🚀 Auto-Deploy (Tự động push lên Git)
+                    </h2>
+                    
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+                        <p class="text-sm text-blue-800">
+                            <strong>✨ Tính năng mới!</strong> Tự động push code lên GitHub Repository_A và K8s manifests lên Repository_B, sau đó trigger GitHub Actions.
+                        </p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-key mr-2"></i>GitHub Personal Access Token (PAT)
+                            </label>
+                            <input type="password" id="githubToken"
+                                   placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <p class="text-xs text-gray-500 mt-1">
+                                Cần có quyền: <code>repo</code>, <code>workflow</code>. 
+                                <a href="https://github.com/settings/tokens/new" target="_blank" class="text-blue-600 hover:underline">Tạo token tại đây</a>
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-folder mr-2"></i>Repository_A Name (Django Code)
+                            </label>
+                            <input type="text" id="repoAName"
+                                   placeholder="vd: my-django-api"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <p class="text-xs text-gray-500 mt-1">Tên repo sẽ chứa Django code</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-folder mr-2"></i>Repository_B Name (K8s Manifests)
+                            </label>
+                            <input type="text" id="repoBName"
+                                   placeholder="vd: Repository_B"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <p class="text-xs text-gray-500 mt-1">Tên repo chứa K8s manifests (phải tồn tại)</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex items-center space-x-6">
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" id="createNewRepoA" checked
+                                   class="w-5 h-5 text-purple-600 rounded focus:ring-purple-500">
+                            <span class="text-sm font-medium text-gray-700">Tạo Repository_A mới</span>
+                        </label>
+                        
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" id="repoAPrivate"
+                                   class="w-5 h-5 text-purple-600 rounded focus:ring-purple-500">
+                            <span class="text-sm font-medium text-gray-700">Repository_A là Private</span>
+                        </label>
+                        
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" id="autoPushRepoB" checked
+                                   class="w-5 h-5 text-purple-600 rounded focus:ring-purple-500">
+                            <span class="text-sm font-medium text-gray-700">Auto push K8s manifests</span>
+                        </label>
+                    </div>
+                </div>
+                <!-- Action Buttons -->
+                <div class="flex items-center justify-center space-x-4 pt-6 border-t">
+                    <button type="button" onclick="previewProject()" 
+                            class="px-8 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold flex items-center space-x-2 transition">
+                        <i class="fas fa-eye"></i>
+                        <span>Preview</span>
+                    </button>
+                    
+                    <button type="button" onclick="generateAndDeploy()"
+                            class="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg font-semibold flex items-center space-x-2 transition transform hover:scale-105">
+                        <i class="fas fa-rocket"></i>
+                        <span>🚀 Auto Deploy (Git + ArgoCD)</span>
+                    </button>
+                    
+                    <button type="submit" 
+                            class="px-8 py-3 btn-primary text-white rounded-lg font-semibold flex items-center space-x-2">
+                        <i class="fas fa-download"></i>
+                        <span>Download ZIP</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-12 py-6">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-gray-400">
+                <i class="fas fa-heart text-red-500"></i> 
+                Made with Django Dev Portal | 
+                <a href="https://github.com" class="text-purple-400 hover:text-purple-300">
+                    <i class="fab fa-github"></i> GitHub
+                </a>
+            </p>
+        </div>
+    </footer>
+    <script src="/static/app.js"></script>
+</body>
+</html>
