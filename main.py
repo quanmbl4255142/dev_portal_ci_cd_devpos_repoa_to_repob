@@ -2,7 +2,7 @@
 Dev Portal - Tự động sinh Django REST API Project
 Tạo bởi: Dev Portal Tool
 """
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
@@ -12,8 +12,17 @@ import json
 import zipfile
 import io
 from datetime import datetime
+import asyncio
+import logging
 from k8s_generator import K8sManifestsGenerator
 from github_manager import GitHubManager
+from mongodb_client import get_mongodb_client
+from argo_sync_service import get_sync_service
+from auto_sync_service import get_auto_sync_service, force_sync_now
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Django Dev Portal",
@@ -23,6 +32,9 @@ app = FastAPI(
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Global variables for background tasks
+sync_task = None
 
 
 class ModelField(BaseModel):
@@ -1572,6 +1584,170 @@ async def generate_and_deploy(config: AutoDeployConfig):
             }
         )
 
+
+# Dashboard API Endpoints
+@app.get("/api/dashboard/applications")
+async def get_dashboard_applications():
+    """Get all applications for dashboard"""
+    try:
+        mongodb = await get_mongodb_client()
+        applications = await mongodb.get_all_applications()
+        return {"status": "success", "data": applications}
+    except Exception as e:
+        logger.error(f"Error getting applications: {e}")
+        raise HTTPException(status_code=500, detail=f"Error retrieving applications: {str(e)}")
+
+@app.get("/api/dashboard/statistics")
+async def get_dashboard_statistics():
+    """Get dashboard statistics"""
+    try:
+        mongodb = await get_mongodb_client()
+        stats = await mongodb.get_statistics()
+        return {"status": "success", "data": stats}
+    except Exception as e:
+        logger.error(f"Error getting statistics: {e}")
+        raise HTTPException(status_code=500, detail=f"Error retrieving statistics: {str(e)}")
+
+@app.get("/api/dashboard/applications/{name}")
+async def get_application_by_name(name: str):
+    """Get specific application by name"""
+    try:
+        mongodb = await get_mongodb_client()
+        application = await mongodb.get_application_by_name(name)
+        if application:
+            return {"status": "success", "data": application}
+        else:
+            raise HTTPException(status_code=404, detail="Application not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting application {name}: {e}")
+        raise HTTPException(status_code=500, detail=f"Error retrieving application: {str(e)}")
+
+@app.get("/api/dashboard/applications/status/{status}")
+async def get_applications_by_status(status: str):
+    """Get applications by health status"""
+    try:
+        mongodb = await get_mongodb_client()
+        applications = await mongodb.get_applications_by_status(status)
+        return {"status": "success", "data": applications}
+    except Exception as e:
+        logger.error(f"Error getting applications by status {status}: {e}")
+        raise HTTPException(status_code=500, detail=f"Error retrieving applications: {str(e)}")
+
+@app.post("/api/dashboard/sync")
+async def trigger_sync(background_tasks: BackgroundTasks):
+    """Trigger manual sync from ArgoCD"""
+    try:
+        # Sử dụng auto sync service để force sync
+        background_tasks.add_task(force_sync_now)
+        return {"status": "success", "message": "Sync triggered successfully"}
+    except Exception as e:
+        logger.error(f"Error triggering sync: {e}")
+        raise HTTPException(status_code=500, detail=f"Error triggering sync: {str(e)}")
+
+@app.post("/api/dashboard/sync/start")
+async def start_continuous_sync(background_tasks: BackgroundTasks):
+    """Start continuous sync from ArgoCD"""
+    global sync_task
+    try:
+        if sync_task and not sync_task.done():
+            return {"status": "warning", "message": "Sync is already running"}
+        
+        # Sử dụng auto sync service
+        auto_sync = await get_auto_sync_service()
+        sync_task = asyncio.create_task(auto_sync.start_auto_sync())
+        return {"status": "success", "message": "Continuous sync started"}
+    except Exception as e:
+        logger.error(f"Error starting continuous sync: {e}")
+        raise HTTPException(status_code=500, detail=f"Error starting sync: {str(e)}")
+
+@app.post("/api/dashboard/sync/stop")
+async def stop_continuous_sync():
+    """Stop continuous sync from ArgoCD"""
+    global sync_task
+    try:
+        if sync_task and not sync_task.done():
+            auto_sync = await get_auto_sync_service()
+            await auto_sync.stop_auto_sync()
+            sync_task.cancel()
+            sync_task = None
+            return {"status": "success", "message": "Continuous sync stopped"}
+        else:
+            return {"status": "warning", "message": "No sync is currently running"}
+    except Exception as e:
+        logger.error(f"Error stopping continuous sync: {e}")
+        raise HTTPException(status_code=500, detail=f"Error stopping sync: {str(e)}")
+
+@app.get("/api/dashboard/sync/status")
+async def get_sync_status():
+    """Get current sync status"""
+    global sync_task
+    try:
+        if sync_task and not sync_task.done():
+            return {"status": "success", "data": {"running": True, "message": "Sync is running"}}
+        else:
+            return {"status": "success", "data": {"running": False, "message": "Sync is not running"}}
+    except Exception as e:
+        logger.error(f"Error getting sync status: {e}")
+        raise HTTPException(status_code=500, detail=f"Error getting sync status: {str(e)}")
+
+# Webhook endpoint for ArgoCD notifications
+@app.post("/api/webhook/argocd")
+async def argocd_webhook(payload: dict, background_tasks: BackgroundTasks):
+    """Handle ArgoCD webhook notifications"""
+    try:
+        logger.info(f"Received ArgoCD webhook: {payload}")
+        
+        # Extract application information from webhook
+        application_name = payload.get('application', {}).get('metadata', {}).get('name')
+        if not application_name:
+            logger.warning("No application name in webhook payload")
+            return {"status": "warning", "message": "No application name found"}
+        
+        # Trigger immediate sync when webhook is received
+        background_tasks.add_task(force_sync_now)
+        
+        return {"status": "success", "message": f"Webhook processed for {application_name}, sync triggered"}
+    except Exception as e:
+        logger.error(f"Error processing ArgoCD webhook: {e}")
+        raise HTTPException(status_code=500, detail=f"Error processing webhook: {str(e)}")
+
+# Startup event to initialize MongoDB connection
+@app.on_event("startup")
+async def startup_event():
+    """Initialize services on startup"""
+    try:
+        # Initialize MongoDB connection
+        mongodb = await get_mongodb_client()
+        logger.info("MongoDB connection initialized")
+        
+        # Start auto sync service
+        auto_sync = await get_auto_sync_service()
+        global sync_task
+        sync_task = asyncio.create_task(auto_sync.start_auto_sync())
+        logger.info("Auto ArgoCD sync started - sẽ tự động lấy dữ liệu mới mỗi 30 giây")
+        
+    except Exception as e:
+        logger.error(f"Error during startup: {e}")
+
+# Shutdown event to cleanup resources
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Cleanup resources on shutdown"""
+    try:
+        global sync_task
+        if sync_task and not sync_task.done():
+            sync_task.cancel()
+            auto_sync = await get_auto_sync_service()
+            await auto_sync.stop_auto_sync()
+        
+        mongodb = await get_mongodb_client()
+        await mongodb.disconnect()
+        logger.info("Cleanup completed")
+        
+    except Exception as e:
+        logger.error(f"Error during shutdown: {e}")
 
 if __name__ == "__main__":
     import uvicorn

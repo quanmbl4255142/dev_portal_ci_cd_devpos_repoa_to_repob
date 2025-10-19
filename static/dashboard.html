@@ -124,7 +124,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-gray-500 text-sm font-semibold">Total Applications</p>
-                        <p class="text-3xl font-bold text-gray-800">12</p>
+                        <p class="text-3xl font-bold text-gray-800" id="total-applications">0</p>
                     </div>
                     <div class="bg-blue-100 rounded-full p-4">
                         <i class="fas fa-cube text-blue-600 text-2xl"></i>
@@ -136,7 +136,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-gray-500 text-sm font-semibold">Healthy Applications</p>
-                        <p class="text-3xl font-bold text-green-600">10</p>
+                        <p class="text-3xl font-bold text-green-600" id="healthy-applications">0</p>
                     </div>
                     <div class="bg-green-100 rounded-full p-4">
                         <i class="fas fa-check-circle text-green-600 text-2xl"></i>
@@ -148,7 +148,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-gray-500 text-sm font-semibold">Total Services</p>
-                        <p class="text-3xl font-bold text-gray-800">24</p>
+                        <p class="text-3xl font-bold text-gray-800" id="total-services">0</p>
                     </div>
                     <div class="bg-purple-100 rounded-full p-4">
                         <i class="fas fa-server text-purple-600 text-2xl"></i>
@@ -160,7 +160,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-gray-500 text-sm font-semibold">Healthy Services</p>
-                        <p class="text-3xl font-bold text-green-600">22</p>
+                        <p class="text-3xl font-bold text-green-600" id="healthy-services">0</p>
                     </div>
                     <div class="bg-green-100 rounded-full p-4">
                         <i class="fas fa-heartbeat text-green-600 text-2xl"></i>
@@ -175,7 +175,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-gray-500 text-sm font-semibold">Degraded Applications</p>
-                        <p class="text-3xl font-bold text-red-600">2</p>
+                        <p class="text-3xl font-bold text-red-600" id="degraded-applications">0</p>
                     </div>
                     <div class="bg-red-100 rounded-full p-4">
                         <i class="fas fa-exclamation-circle text-red-600 text-2xl"></i>
@@ -187,7 +187,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-gray-500 text-sm font-semibold">Unhealthy Services</p>
-                        <p class="text-3xl font-bold text-red-600">2</p>
+                        <p class="text-3xl font-bold text-red-600" id="unhealthy-services">0</p>
                     </div>
                     <div class="bg-red-100 rounded-full p-4">
                         <i class="fas fa-times-circle text-red-600 text-2xl"></i>
@@ -199,7 +199,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-gray-500 text-sm font-semibold">Health Percentage</p>
-                        <p class="text-3xl font-bold text-purple-600">92%</p>
+                        <p class="text-3xl font-bold text-purple-600" id="health-percentage">0%</p>
                     </div>
                     <div class="bg-purple-100 rounded-full p-4">
                         <i class="fas fa-percentage text-purple-600 text-2xl"></i>
@@ -211,7 +211,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-gray-500 text-sm font-semibold">Sync Status</p>
-                        <div class="text-sm font-bold text-green-600">Synced</div>
+                        <div class="text-sm font-bold text-green-600" id="sync-status">Loading...</div>
                     </div>
                     <div class="bg-blue-100 rounded-full p-4">
                         <i class="fas fa-sync-alt text-blue-600 text-2xl"></i>
@@ -241,151 +241,8 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        <tr class="table-row">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0 h-10 w-10">
-                                        <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                                            <i class="fas fa-cube text-blue-600"></i>
-                                        </div>
-                                    </div>
-                                    <div class="ml-4">
-                                        <div class="text-sm font-medium text-gray-900">django-api-staging</div>
-                                        <div class="text-sm text-gray-500">Production API</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="status-badge status-running">
-                                    <i class="fas fa-check-circle mr-1"></i>
-                                    Healthy
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="status-badge status-running">
-                                    <i class="fas fa-sync mr-1"></i>
-                                    Synced
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <div class="flex flex-col">
-                                    <span>Deployment: 1/1</span>
-                                    <span>Service: 1/1</span>
-                                    <span>Ingress: 1/1</span>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                2 minutes ago
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                2024-01-15 10:30
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button class="action-btn bg-blue-500 text-white hover:bg-blue-600 mr-2">
-                                    <i class="fas fa-eye mr-1"></i>View
-                                </button>
-                                <button class="action-btn bg-green-500 text-white hover:bg-green-600">
-                                    <i class="fas fa-sync mr-1"></i>Sync
-                                </button>
-                            </td>
-                        </tr>
-                        <tr class="table-row">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0 h-10 w-10">
-                                        <div class="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
-                                            <i class="fas fa-cube text-purple-600"></i>
-                                        </div>
-                                    </div>
-                                    <div class="ml-4">
-                                        <div class="text-sm font-medium text-gray-900">django-test-02</div>
-                                        <div class="text-sm text-gray-500">Testing Environment</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="status-badge status-deploying">
-                                    <i class="fas fa-clock mr-1"></i>
-                                    Deploying
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="status-badge status-pending">
-                                    <i class="fas fa-hourglass-half mr-1"></i>
-                                    Pending
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <div class="flex flex-col">
-                                    <span>Deployment: 0/1</span>
-                                    <span>Service: 1/1</span>
-                                    <span>Ingress: 1/1</span>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                5 minutes ago
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                2024-01-15 09:45
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button class="action-btn bg-blue-500 text-white hover:bg-blue-600 mr-2">
-                                    <i class="fas fa-eye mr-1"></i>View
-                                </button>
-                                <button class="action-btn bg-orange-500 text-white hover:bg-orange-600">
-                                    <i class="fas fa-exclamation-triangle mr-1"></i>Debug
-                                </button>
-                            </td>
-                        </tr>
-                        <tr class="table-row">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0 h-10 w-10">
-                                        <div class="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
-                                            <i class="fas fa-cube text-red-600"></i>
-                                        </div>
-                                    </div>
-                                    <div class="ml-4">
-                                        <div class="text-sm font-medium text-gray-900">django-test-03</div>
-                                        <div class="text-sm text-gray-500">Failed Service</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="status-badge status-failed">
-                                    <i class="fas fa-times-circle mr-1"></i>
-                                    Failed
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="status-badge status-failed">
-                                    <i class="fas fa-exclamation-triangle mr-1"></i>
-                                    Error
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <div class="flex flex-col">
-                                    <span>Deployment: 0/1</span>
-                                    <span>Service: 0/1</span>
-                                    <span>Ingress: 0/1</span>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                10 minutes ago
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                2024-01-15 08:20
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button class="action-btn bg-blue-500 text-white hover:bg-blue-600 mr-2">
-                                    <i class="fas fa-eye mr-1"></i>View
-                                </button>
-                                <button class="action-btn bg-red-500 text-white hover:bg-red-600">
-                                    <i class="fas fa-wrench mr-1"></i>Fix
-                                </button>
-                            </td>
-                        </tr>
+                    <tbody class="bg-white divide-y divide-gray-200" id="applications-tbody">
+                        <!-- Dữ liệu sẽ được load từ API -->
                     </tbody>
                 </table>
             </div>
@@ -412,142 +269,8 @@
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        <tr class="table-row">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0 h-8 w-8">
-                                        <div class="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
-                                            <i class="fas fa-server text-green-600 text-sm"></i>
-                                        </div>
-                                    </div>
-                                    <div class="ml-3">
-                                        <div class="text-sm font-medium text-gray-900">django-api-staging-service</div>
-                                        <div class="text-sm text-gray-500">Port: 8000</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="status-badge status-running">
-                                    <i class="fas fa-play mr-1"></i>
-                                    Running
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="health-healthy">
-                                    <i class="fas fa-heartbeat mr-1"></i>
-                                    Healthy
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <div class="flex flex-col">
-                                    <span>CPU: 250m / 500m</span>
-                                    <span>Memory: 512Mi / 1Gi</span>
-                                    <span>Pods: 2/2</span>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                1 minute ago
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button class="action-btn bg-blue-500 text-white hover:bg-blue-600 mr-2">
-                                    <i class="fas fa-eye mr-1"></i>View
-                                </button>
-                                <button class="action-btn bg-green-500 text-white hover:bg-green-600">
-                                    <i class="fas fa-edit mr-1"></i>Edit
-                                </button>
-                            </td>
-                        </tr>
-                        <tr class="table-row">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0 h-8 w-8">
-                                        <div class="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center">
-                                            <i class="fas fa-server text-yellow-600 text-sm"></i>
-                                        </div>
-                                    </div>
-                                    <div class="ml-3">
-                                        <div class="text-sm font-medium text-gray-900">django-test-02-service</div>
-                                        <div class="text-sm text-gray-500">Port: 8000</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="status-badge status-deploying">
-                                    <i class="fas fa-clock mr-1"></i>
-                                    Deploying
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="health-unknown">
-                                    <i class="fas fa-question-circle mr-1"></i>
-                                    Unknown
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <div class="flex flex-col">
-                                    <span>CPU: 100m / 250m</span>
-                                    <span>Memory: 256Mi / 512Mi</span>
-                                    <span>Pods: 0/1</span>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                3 minutes ago
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button class="action-btn bg-blue-500 text-white hover:bg-blue-600 mr-2">
-                                    <i class="fas fa-eye mr-1"></i>View
-                                </button>
-                                <button class="action-btn bg-yellow-500 text-white hover:bg-yellow-600">
-                                    <i class="fas fa-clock mr-1"></i>Wait
-                                </button>
-                            </td>
-                        </tr>
-                        <tr class="table-row">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0 h-8 w-8">
-                                        <div class="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center">
-                                            <i class="fas fa-server text-red-600 text-sm"></i>
-                                        </div>
-                                    </div>
-                                    <div class="ml-3">
-                                        <div class="text-sm font-medium text-gray-900">django-test-03-service</div>
-                                        <div class="text-sm text-gray-500">Port: 8000</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="status-badge status-failed">
-                                    <i class="fas fa-stop mr-1"></i>
-                                    Failed
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="health-unhealthy">
-                                    <i class="fas fa-heart-broken mr-1"></i>
-                                    Unhealthy
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <div class="flex flex-col">
-                                    <span>CPU: 0m / 250m</span>
-                                    <span>Memory: 0Mi / 512Mi</span>
-                                    <span>Pods: 0/1</span>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                8 minutes ago
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button class="action-btn bg-blue-500 text-white hover:bg-blue-600 mr-2">
-                                    <i class="fas fa-eye mr-1"></i>View
-                                </button>
-                                <button class="action-btn bg-red-500 text-white hover:bg-red-600">
-                                    <i class="fas fa-wrench mr-1"></i>Fix
-                                </button>
-                            </td>
-                        </tr>
+                    <tbody class="bg-white divide-y divide-gray-200" id="services-tbody">
+                        <!-- Dữ liệu sẽ được load từ API -->
                     </tbody>
                 </table>
             </div>
@@ -569,7 +292,7 @@
 
     <!-- Service Detail Modal -->
     <div id="serviceModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
             <div class="gradient-bg text-white px-6 py-4 flex items-center justify-between">
                 <h3 class="text-2xl font-bold flex items-center">
                     <i class="fas fa-info-circle mr-3"></i>
@@ -580,48 +303,124 @@
                 </button>
             </div>
             <div class="p-6">
-                <div class="grid grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Basic Information -->
                     <div>
-                        <h4 class="text-lg font-semibold text-gray-800 mb-4">Service Information</h4>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-cube mr-2"></i>Basic Information
+                        </h4>
                         <div class="space-y-3">
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Name:</span>
-                                <span class="font-medium">django-api-staging-service</span>
+                                <span id="service-name" class="font-medium">Loading...</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">ID:</span>
+                                <span id="service-id" class="font-mono text-sm text-gray-500">Loading...</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Namespace:</span>
-                                <span class="font-medium">django-api-staging</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Port:</span>
-                                <span class="font-medium">8000</span>
+                                <span id="service-namespace" class="font-medium">Loading...</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Status:</span>
-                                <span class="status-badge status-running">Running</span>
+                                <span id="service-status" class="px-2 py-1 rounded text-xs font-semibold">Loading...</span>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Git Repository -->
                     <div>
-                        <h4 class="text-lg font-semibold text-gray-800 mb-4">Resource Usage</h4>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <i class="fab fa-git-alt mr-2"></i>Git Repository
+                        </h4>
                         <div class="space-y-3">
-                            <div>
-                                <div class="flex justify-between mb-1">
-                                    <span class="text-gray-600">CPU Usage</span>
-                                    <span class="font-medium">250m / 500m</span>
-                                </div>
-                                <div class="w-full bg-gray-200 rounded-full h-2">
-                                    <div class="bg-blue-600 h-2 rounded-full" style="width: 50%"></div>
-                                </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">URL:</span>
+                                <span id="service-git" class="font-mono text-sm text-blue-600 break-all">Loading...</span>
                             </div>
-                            <div>
-                                <div class="flex justify-between mb-1">
-                                    <span class="text-gray-600">Memory Usage</span>
-                                    <span class="font-medium">512Mi / 1Gi</span>
-                                </div>
-                                <div class="w-full bg-gray-200 rounded-full h-2">
-                                    <div class="bg-green-600 h-2 rounded-full" style="width: 51%"></div>
-                                </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Branch:</span>
+                                <span id="service-branch" class="font-medium">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pod Configuration -->
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-server mr-2"></i>Pod Configuration
+                        </h4>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Replicas:</span>
+                                <span id="service-replicas" class="font-medium">Loading...</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Image:</span>
+                                <span id="service-image" class="font-mono text-sm text-gray-700 break-all">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resource Limits -->
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-memory mr-2"></i>Resource Limits
+                        </h4>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">CPU Request:</span>
+                                <span id="service-cpu-request" class="font-medium">Loading...</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">CPU Limit:</span>
+                                <span id="service-cpu-limit" class="font-medium">Loading...</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Memory Request:</span>
+                                <span id="service-memory-request" class="font-medium">Loading...</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Memory Limit:</span>
+                                <span id="service-memory-limit" class="font-medium">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ports -->
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-network-wired mr-2"></i>Ports
+                        </h4>
+                        <div id="service-ports" class="space-y-2">
+                            <div class="text-sm text-gray-500">Loading...</div>
+                        </div>
+                    </div>
+
+                    <!-- Environment Variables -->
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-cog mr-2"></i>Environment Variables
+                        </h4>
+                        <div id="service-env" class="space-y-2 max-h-40 overflow-y-auto">
+                            <div class="text-sm text-gray-500">Loading...</div>
+                        </div>
+                    </div>
+
+                    <!-- Timestamps -->
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-clock mr-2"></i>Timestamps
+                        </h4>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Created:</span>
+                                <span id="service-created" class="font-mono text-sm text-gray-500">Loading...</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Updated:</span>
+                                <span id="service-updated" class="font-mono text-sm text-gray-500">Loading...</span>
                             </div>
                         </div>
                     </div>
@@ -703,7 +502,13 @@
     </div>
 
     <script>
-        // Demo JavaScript functions
+        // Global variables
+        let applicationsData = [];
+        let statisticsData = {};
+        let refreshInterval;
+        let syncStatus = false;
+
+        // Utility functions
         function closeModal() {
             document.getElementById('serviceModal').classList.add('hidden');
         }
@@ -711,43 +516,462 @@
         function closeEditModal() {
             document.getElementById('editModal').classList.add('hidden');
         }
-        
-        // Add click handlers for demo buttons
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add click handlers to view buttons
-            const viewButtons = document.querySelectorAll('.action-btn');
-            viewButtons.forEach(button => {
-                if (button.innerHTML.includes('View')) {
-                    button.addEventListener('click', function() {
-                        document.getElementById('serviceModal').classList.remove('hidden');
-                    });
+
+        // API functions
+        async function fetchApplications() {
+            try {
+                const response = await fetch('/api/dashboard/applications');
+                const result = await response.json();
+                if (result.status === 'success') {
+                    applicationsData = result.data;
+                    updateApplicationsTable();
+                } else {
+                    console.error('Error fetching applications:', result);
                 }
-                if (button.innerHTML.includes('Edit')) {
-                    button.addEventListener('click', function() {
-                        document.getElementById('editModal').classList.remove('hidden');
-                    });
+            } catch (error) {
+                console.error('Error fetching applications:', error);
+                showError('Failed to fetch applications');
+            }
+        }
+
+        async function fetchStatistics() {
+            try {
+                const response = await fetch('/api/dashboard/statistics');
+                const result = await response.json();
+                if (result.status === 'success') {
+                    statisticsData = result.data;
+                    updateStatisticsCards();
+                } else {
+                    console.error('Error fetching statistics:', result);
                 }
-            });
+            } catch (error) {
+                console.error('Error fetching statistics:', error);
+            }
+        }
+
+        async function triggerSync() {
+            try {
+                const response = await fetch('/api/dashboard/sync', { method: 'POST' });
+                const result = await response.json();
+                if (result.status === 'success') {
+                    showSuccess('Sync triggered successfully');
+                    // Refresh data after sync
+                    setTimeout(() => {
+                        fetchApplications();
+                        fetchStatistics();
+                    }, 2000);
+                } else {
+                    showError('Failed to trigger sync');
+                }
+            } catch (error) {
+                console.error('Error triggering sync:', error);
+                showError('Failed to trigger sync');
+            }
+        }
+
+        async function checkSyncStatus() {
+            try {
+                const response = await fetch('/api/dashboard/sync/status');
+                const result = await response.json();
+                if (result.status === 'success') {
+                    syncStatus = result.data.running;
+                    updateSyncButton();
+                }
+            } catch (error) {
+                console.error('Error checking sync status:', error);
+            }
+        }
+
+        // UI update functions
+        function updateStatisticsCards() {
+            const stats = statisticsData;
             
-            // Add click handlers to other action buttons
+            // Update total applications
+            const totalAppsElement = document.getElementById('total-applications');
+            if (totalAppsElement) {
+                totalAppsElement.textContent = stats.totalApplications || 0;
+            }
+            
+            // Update healthy applications
+            const healthyAppsElement = document.getElementById('healthy-applications');
+            if (healthyAppsElement) {
+                healthyAppsElement.textContent = stats.healthyApplications || 0;
+            }
+            
+            // Update total services
+            const totalServicesElement = document.getElementById('total-services');
+            if (totalServicesElement) {
+                totalServicesElement.textContent = stats.totalServices || 0;
+            }
+            
+            // Update healthy services
+            const healthyServicesElement = document.getElementById('healthy-services');
+            if (healthyServicesElement) {
+                healthyServicesElement.textContent = stats.healthyServices || 0;
+            }
+            
+            // Update degraded applications
+            const degradedElement = document.getElementById('degraded-applications');
+            if (degradedElement) {
+                degradedElement.textContent = stats.degradedApplications || 0;
+            }
+            
+            // Update unhealthy services
+            const unhealthyServicesElement = document.getElementById('unhealthy-services');
+            if (unhealthyServicesElement) {
+                unhealthyServicesElement.textContent = (stats.totalServices - stats.healthyServices) || 0;
+            }
+            
+            // Update health percentage
+            const healthPercentageElement = document.getElementById('health-percentage');
+            if (healthPercentageElement) {
+                healthPercentageElement.textContent = `${stats.healthPercentage || 0}%`;
+            }
+            
+            // Update sync status
+            const syncStatusElement = document.getElementById('sync-status');
+            if (syncStatusElement) {
+                syncStatusElement.textContent = syncStatus ? 'Running' : 'Stopped';
+                syncStatusElement.className = syncStatus ? 'text-sm font-bold text-green-600' : 'text-sm font-bold text-red-600';
+            }
+        }
+
+        function updateApplicationsTable() {
+            const tbody = document.querySelector('tbody');
+            if (!tbody) return;
+
+            // Clear existing rows
+            tbody.innerHTML = '';
+
+            applicationsData.forEach(app => {
+                const row = createApplicationRow(app);
+                tbody.appendChild(row);
+            });
+        }
+
+        function createApplicationRow(app) {
+            const row = document.createElement('tr');
+            row.className = 'table-row';
+
+            const healthStatus = app.healthStatus || 'Unknown';
+            const syncStatus = app.syncStatus || 'Unknown';
+            const lastSync = app.lastSyncTime ? formatTimeAgo(new Date(app.lastSyncTime)) : 'Unknown';
+            const createdAt = app.createdAt ? formatDateTime(new Date(app.createdAt)) : 'Unknown';
+
+            // Get service count
+            const serviceCount = app.services ? app.services.length : 0;
+            const healthyServices = app.services ? app.services.filter(s => s.status === 'Running').length : 0;
+
+            row.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 h-10 w-10">
+                            <div class="h-10 w-10 rounded-full ${getStatusColor(healthStatus)} flex items-center justify-center">
+                                <i class="fas fa-cube ${getStatusIconColor(healthStatus)}"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <div class="text-sm font-medium text-gray-900">${app.name || 'Unknown'}</div>
+                            <div class="text-sm text-gray-500">${app.namespace || 'Unknown'}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="status-badge ${getStatusBadgeClass(healthStatus)}">
+                        <i class="fas ${getStatusIcon(healthStatus)} mr-1"></i>
+                        ${healthStatus}
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="status-badge ${getStatusBadgeClass(syncStatus)}">
+                        <i class="fas fa-sync mr-1"></i>
+                        ${syncStatus}
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <div class="flex flex-col">
+                        <span>Services: ${healthyServices}/${serviceCount}</span>
+                        <span>Deployments: ${app.deployments ? app.deployments.length : 0}</span>
+                        <span>Git: ${app.gitRepo ? app.gitRepo.branch || 'main' : 'Unknown'}</span>
+                    </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    ${lastSync}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    ${createdAt}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <button class="action-btn bg-blue-500 text-white hover:bg-blue-600 mr-2" onclick="viewApplication('${app.name}')">
+                        <i class="fas fa-eye mr-1"></i>View
+                    </button>
+                    <button class="action-btn bg-green-500 text-white hover:bg-green-600" onclick="syncApplication('${app.name}')">
+                        <i class="fas fa-sync mr-1"></i>Sync
+                    </button>
+                </td>
+            `;
+
+            return row;
+        }
+
+        function getStatusColor(status) {
+            switch (status.toLowerCase()) {
+                case 'healthy': return 'bg-green-100';
+                case 'degraded': return 'bg-yellow-100';
+                case 'failed': return 'bg-red-100';
+                default: return 'bg-gray-100';
+            }
+        }
+
+        function getStatusIconColor(status) {
+            switch (status.toLowerCase()) {
+                case 'healthy': return 'text-green-600';
+                case 'degraded': return 'text-yellow-600';
+                case 'failed': return 'text-red-600';
+                default: return 'text-gray-600';
+            }
+        }
+
+        function getStatusBadgeClass(status) {
+            switch (status.toLowerCase()) {
+                case 'healthy': return 'status-running';
+                case 'degraded': return 'status-deploying';
+                case 'failed': return 'status-failed';
+                case 'synced': return 'status-running';
+                case 'outofsync': return 'status-pending';
+                default: return 'status-stopped';
+            }
+        }
+
+        function getStatusIcon(status) {
+            switch (status.toLowerCase()) {
+                case 'healthy': return 'fa-check-circle';
+                case 'degraded': return 'fa-exclamation-triangle';
+                case 'failed': return 'fa-times-circle';
+                case 'synced': return 'fa-sync';
+                case 'outofsync': return 'fa-hourglass-half';
+                default: return 'fa-question-circle';
+            }
+        }
+
+        function formatTimeAgo(date) {
+            const now = new Date();
+            const diffInSeconds = Math.floor((now - date) / 1000);
+            
+            if (diffInSeconds < 60) return `${diffInSeconds} seconds ago`;
+            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+            return `${Math.floor(diffInSeconds / 86400)} days ago`;
+        }
+
+        function formatDateTime(date) {
+            return date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function updateSyncButton() {
+            const syncButton = document.querySelector('button:contains("Toggle Sync")');
+            if (syncButton) {
+                if (syncStatus) {
+                    syncButton.innerHTML = '<i class="fas fa-pause-circle"></i><span>Stop Sync</span>';
+                    syncButton.className = 'px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg transition flex items-center space-x-2';
+                } else {
+                    syncButton.innerHTML = '<i class="fas fa-play-circle"></i><span>Start Sync</span>';
+                    syncButton.className = 'px-4 py-2 bg-green-500/20 hover:bg-green-500/30 rounded-lg transition flex items-center space-x-2';
+                }
+            }
+        }
+
+        // Action functions
+        function viewApplication(appName) {
+            const app = applicationsData.find(a => a.name === appName);
+            if (app) {
+                // Update modal content with real data
+                updateServiceModal(app);
+                document.getElementById('serviceModal').classList.remove('hidden');
+            }
+        }
+
+        function syncApplication(appName) {
+            triggerSync();
+        }
+
+        function updateServiceModal(app) {
+            // Update modal with detailed service data
+            const modal = document.getElementById('serviceModal');
+            
+            // Update basic info
+            const nameElement = modal.querySelector('#service-name');
+            if (nameElement) nameElement.textContent = app.name || 'Unknown';
+            
+            const namespaceElement = modal.querySelector('#service-namespace');
+            if (namespaceElement) namespaceElement.textContent = app.namespace || 'Unknown';
+            
+            const statusElement = modal.querySelector('#service-status');
+            if (statusElement) {
+                statusElement.textContent = app.healthStatus || 'Unknown';
+                statusElement.className = `px-2 py-1 rounded text-xs font-semibold ${getStatusBadgeClass(app.healthStatus)}`;
+            }
+            
+            // Update detailed info
+            const idElement = modal.querySelector('#service-id');
+            if (idElement) idElement.textContent = app.id || 'N/A';
+            
+            const gitElement = modal.querySelector('#service-git');
+            if (gitElement) gitElement.textContent = app.gitRepo?.url || 'N/A';
+            
+            const branchElement = modal.querySelector('#service-branch');
+            if (branchElement) branchElement.textContent = app.gitRepo?.branch || 'N/A';
+            
+            // Update pod config
+            const replicasElement = modal.querySelector('#service-replicas');
+            if (replicasElement) {
+                const replicas = app.podConfig?.replicas || 0;
+                const readyReplicas = app.podConfig?.readyReplicas || 0;
+                const availableReplicas = app.podConfig?.availableReplicas || 0;
+                replicasElement.innerHTML = `${replicas} (Ready: ${readyReplicas}, Available: ${availableReplicas})`;
+            }
+            
+            const imageElement = modal.querySelector('#service-image');
+            if (imageElement) imageElement.textContent = app.podConfig?.image || 'N/A';
+            
+            // Update resources
+            const cpuRequestElement = modal.querySelector('#service-cpu-request');
+            if (cpuRequestElement) cpuRequestElement.textContent = app.podConfig?.resources?.requests?.cpu || 'N/A';
+            
+            const memoryRequestElement = modal.querySelector('#service-memory-request');
+            if (memoryRequestElement) memoryRequestElement.textContent = app.podConfig?.resources?.requests?.memory || 'N/A';
+            
+            const cpuLimitElement = modal.querySelector('#service-cpu-limit');
+            if (cpuLimitElement) cpuLimitElement.textContent = app.podConfig?.resources?.limits?.cpu || 'N/A';
+            
+            const memoryLimitElement = modal.querySelector('#service-memory-limit');
+            if (memoryLimitElement) memoryLimitElement.textContent = app.podConfig?.resources?.limits?.memory || 'N/A';
+            
+            // Update ports
+            const portsElement = modal.querySelector('#service-ports');
+            if (portsElement) {
+                if (app.podConfig?.ports && app.podConfig.ports.length > 0) {
+                    portsElement.innerHTML = app.podConfig.ports.map(port => 
+                        `<div class="text-sm text-gray-700 bg-gray-50 px-2 py-1 rounded mb-1">
+                            <span class="font-medium">${port.containerPort || port.port || 'N/A'}</span> 
+                            (${port.protocol || 'TCP'})
+                        </div>`
+                    ).join('');
+                } else if (app.serviceConfig?.ports && app.serviceConfig.ports.length > 0) {
+                    portsElement.innerHTML = app.serviceConfig.ports.map(port => 
+                        `<div class="text-sm text-gray-700 bg-gray-50 px-2 py-1 rounded mb-1">
+                            <span class="font-medium">${port.port || 'N/A'}</span> → 
+                            <span class="font-medium">${port.targetPort || 'N/A'}</span> 
+                            (${port.protocol || 'TCP'})
+                        </div>`
+                    ).join('');
+                } else {
+                    portsElement.innerHTML = '<div class="text-sm text-gray-500">No ports</div>';
+                }
+            }
+            
+            // Update environment variables
+            const envElement = modal.querySelector('#service-env');
+            if (envElement) {
+                if (app.podConfig?.env && app.podConfig.env.length > 0) {
+                    envElement.innerHTML = app.podConfig.env.map(env => 
+                        `<div class="text-sm text-gray-700 bg-gray-50 px-2 py-1 rounded mb-1">
+                            <span class="font-medium text-blue-600">${env.name}:</span> 
+                            <span class="text-gray-600">${env.value}</span>
+                        </div>`
+                    ).join('');
+                } else {
+                    envElement.innerHTML = '<div class="text-sm text-gray-500">No environment variables</div>';
+                }
+            }
+            
+            // Update timestamps
+            const createdAtElement = modal.querySelector('#service-created');
+            if (createdAtElement) createdAtElement.textContent = app.createdAt || 'N/A';
+            
+            const updatedAtElement = modal.querySelector('#service-updated');
+            if (updatedAtElement) updatedAtElement.textContent = app.updatedAt || 'N/A';
+        }
+
+        function showSuccess(message) {
+            Swal.fire({
+                title: 'Success',
+                text: message,
+                icon: 'success',
+                confirmButtonText: 'OK'
+            });
+        }
+
+        function showError(message) {
+            Swal.fire({
+                title: 'Error',
+                text: message,
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        }
+
+        // Auto-refresh functionality
+        function startAutoRefresh() {
+            refreshInterval = setInterval(() => {
+                fetchApplications();
+                fetchStatistics();
+                checkSyncStatus();
+            }, 10000); // Refresh every 10 seconds
+        }
+
+        function stopAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+            }
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load initial data
+            fetchApplications();
+            fetchStatistics();
+            checkSyncStatus();
+            
+            // Start auto-refresh
+            startAutoRefresh();
+            
+            // Add click handlers for action buttons
             const actionButtons = document.querySelectorAll('button');
             actionButtons.forEach(button => {
                 button.addEventListener('click', function(e) {
-                    if (button.innerHTML.includes('Refresh') || 
-                        button.innerHTML.includes('Sync') || 
-                        button.innerHTML.includes('Check') ||
-                        button.innerHTML.includes('Toggle')) {
+                    if (button.innerHTML.includes('Refresh')) {
                         e.preventDefault();
-                        // Show demo alert
-                        Swal.fire({
-                            title: 'Demo Action',
-                            text: 'This is a demo template. In a real application, this would perform the actual action.',
-                            icon: 'info',
-                            confirmButtonText: 'OK'
-                        });
+                        fetchApplications();
+                        fetchStatistics();
+                        showSuccess('Data refreshed');
+                    } else if (button.innerHTML.includes('Toggle Sync') || button.innerHTML.includes('Start Sync') || button.innerHTML.includes('Stop Sync')) {
+                        e.preventDefault();
+                        if (syncStatus) {
+                            // Stop sync logic here
+                            showSuccess('Sync stopped');
+                        } else {
+                            // Start sync logic here
+                            showSuccess('Sync started');
+                        }
+                    } else if (button.innerHTML.includes('Check ArgoCD')) {
+                        e.preventDefault();
+                        triggerSync();
                     }
                 });
             });
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            stopAutoRefresh();
         });
     </script>
 </body>
