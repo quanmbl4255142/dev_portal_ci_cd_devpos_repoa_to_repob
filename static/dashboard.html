@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Template - Services Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .status-pending { background: #FEF3C7; color: #92400E; }
+        .status-deploying { background: #DBEAFE; color: #1E40AF; }
+        .status-running { background: #D1FAE5; color: #065F46; }
+        .status-failed { background: #FEE2E2; color: #991B1B; }
+        .status-stopped { background: #F3F4F6; color: #374151; }
+        
+        .health-healthy { color: #10B981; }
+        .health-unhealthy { color: #EF4444; }
+        .health-unknown { color: #6B7280; }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .table-row:hover {
+            background-color: #F9FAFB;
+        }
+        
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .action-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Demo data styles */
+        .demo-data {
+            opacity: 0.8;
+            position: relative;
+        }
+
+        .demo-data::after {
+            content: "DEMO DATA";
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ff6b6b;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <i class="fas fa-chart-line text-4xl"></i>
+                    <div>
+                        <h1 class="text-3xl font-bold">Services Dashboard</h1>
+                        <p class="text-purple-200">Quản lý và giám sát tất cả Django services</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition flex items-center space-x-2">
+                        <i class="fas fa-home"></i>
+                        <span>Trang chủ</span>
+                    </button>
+                    <button class="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition flex items-center space-x-2">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Refresh</span>
+                    </button>
+                    <button class="px-4 py-2 bg-green-500/20 hover:bg-green-500/30 rounded-lg transition flex items-center space-x-2">
+                        <i class="fas fa-play-circle"></i>
+                        <span>Toggle Sync</span>
+                    </button>
+                    <button class="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 rounded-lg transition flex items-center space-x-2">
+                        <i class="fas fa-stethoscope"></i>
+                        <span>Check ArgoCD</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm font-semibold">Total Applications</p>
+                        <p class="text-3xl font-bold text-gray-800">12</p>
+                    </div>
+                    <div class="bg-blue-100 rounded-full p-4">
+                        <i class="fas fa-cube text-blue-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm font-semibold">Healthy Applications</p>
+                        <p class="text-3xl font-bold text-green-600">10</p>
+                    </div>
+                    <div class="bg-green-100 rounded-full p-4">
+                        <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm font-semibold">Total Services</p>
+                        <p class="text-3xl font-bold text-gray-800">24</p>
+                    </div>
+                    <div class="bg-purple-100 rounded-full p-4">
+                        <i class="fas fa-server text-purple-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm font-semibold">Healthy Services</p>
+                        <p class="text-3xl font-bold text-green-600">22</p>
+                    </div>
+                    <div class="bg-green-100 rounded-full p-4">
+                        <i class="fas fa-heartbeat text-green-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Stats Row -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm font-semibold">Degraded Applications</p>
+                        <p class="text-3xl font-bold text-red-600">2</p>
+                    </div>
+                    <div class="bg-red-100 rounded-full p-4">
+                        <i class="fas fa-exclamation-circle text-red-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm font-semibold">Unhealthy Services</p>
+                        <p class="text-3xl font-bold text-red-600">2</p>
+                    </div>
+                    <div class="bg-red-100 rounded-full p-4">
+                        <i class="fas fa-times-circle text-red-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm font-semibold">Health Percentage</p>
+                        <p class="text-3xl font-bold text-purple-600">92%</p>
+                    </div>
+                    <div class="bg-purple-100 rounded-full p-4">
+                        <i class="fas fa-percentage text-purple-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm font-semibold">Sync Status</p>
+                        <div class="text-sm font-bold text-green-600">Synced</div>
+                    </div>
+                    <div class="bg-blue-100 rounded-full p-4">
+                        <i class="fas fa-sync-alt text-blue-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Applications Table -->
+        <div class="bg-white rounded-lg shadow-xl overflow-hidden mb-8">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                    <i class="fas fa-cube mr-3 text-blue-600"></i>
+                    ArgoCD Applications
+                </h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Application</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Health Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ArgoCD Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">K8s Resources</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Sync</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr class="table-row">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                            <i class="fas fa-cube text-blue-600"></i>
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">django-api-staging</div>
+                                        <div class="text-sm text-gray-500">Production API</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="status-badge status-running">
+                                    <i class="fas fa-check-circle mr-1"></i>
+                                    Healthy
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="status-badge status-running">
+                                    <i class="fas fa-sync mr-1"></i>
+                                    Synced
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <div class="flex flex-col">
+                                    <span>Deployment: 1/1</span>
+                                    <span>Service: 1/1</span>
+                                    <span>Ingress: 1/1</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                2 minutes ago
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                2024-01-15 10:30
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button class="action-btn bg-blue-500 text-white hover:bg-blue-600 mr-2">
+                                    <i class="fas fa-eye mr-1"></i>View
+                                </button>
+                                <button class="action-btn bg-green-500 text-white hover:bg-green-600">
+                                    <i class="fas fa-sync mr-1"></i>Sync
+                                </button>
+                            </td>
+                        </tr>
+                        <tr class="table-row">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <div class="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
+                                            <i class="fas fa-cube text-purple-600"></i>
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">django-test-02</div>
+                                        <div class="text-sm text-gray-500">Testing Environment</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="status-badge status-deploying">
+                                    <i class="fas fa-clock mr-1"></i>
+                                    Deploying
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="status-badge status-pending">
+                                    <i class="fas fa-hourglass-half mr-1"></i>
+                                    Pending
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <div class="flex flex-col">
+                                    <span>Deployment: 0/1</span>
+                                    <span>Service: 1/1</span>
+                                    <span>Ingress: 1/1</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                5 minutes ago
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                2024-01-15 09:45
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button class="action-btn bg-blue-500 text-white hover:bg-blue-600 mr-2">
+                                    <i class="fas fa-eye mr-1"></i>View
+                                </button>
+                                <button class="action-btn bg-orange-500 text-white hover:bg-orange-600">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>Debug
+                                </button>
+                            </td>
+                        </tr>
+                        <tr class="table-row">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <div class="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+                                            <i class="fas fa-cube text-red-600"></i>
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">django-test-03</div>
+                                        <div class="text-sm text-gray-500">Failed Service</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="status-badge status-failed">
+                                    <i class="fas fa-times-circle mr-1"></i>
+                                    Failed
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="status-badge status-failed">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                    Error
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <div class="flex flex-col">
+                                    <span>Deployment: 0/1</span>
+                                    <span>Service: 0/1</span>
+                                    <span>Ingress: 0/1</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                10 minutes ago
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                2024-01-15 08:20
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button class="action-btn bg-blue-500 text-white hover:bg-blue-600 mr-2">
+                                    <i class="fas fa-eye mr-1"></i>View
+                                </button>
+                                <button class="action-btn bg-red-500 text-white hover:bg-red-600">
+                                    <i class="fas fa-wrench mr-1"></i>Fix
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Services Table -->
+        <div class="bg-white rounded-lg shadow-xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                    <i class="fas fa-list mr-3 text-purple-600"></i>
+                    All Services
+                </h2>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-100 border-b border-gray-200">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Service Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Health</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Resources</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Last Update</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr class="table-row">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-8 w-8">
+                                        <div class="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+                                            <i class="fas fa-server text-green-600 text-sm"></i>
+                                        </div>
+                                    </div>
+                                    <div class="ml-3">
+                                        <div class="text-sm font-medium text-gray-900">django-api-staging-service</div>
+                                        <div class="text-sm text-gray-500">Port: 8000</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="status-badge status-running">
+                                    <i class="fas fa-play mr-1"></i>
+                                    Running
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="health-healthy">
+                                    <i class="fas fa-heartbeat mr-1"></i>
+                                    Healthy
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <div class="flex flex-col">
+                                    <span>CPU: 250m / 500m</span>
+                                    <span>Memory: 512Mi / 1Gi</span>
+                                    <span>Pods: 2/2</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                1 minute ago
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button class="action-btn bg-blue-500 text-white hover:bg-blue-600 mr-2">
+                                    <i class="fas fa-eye mr-1"></i>View
+                                </button>
+                                <button class="action-btn bg-green-500 text-white hover:bg-green-600">
+                                    <i class="fas fa-edit mr-1"></i>Edit
+                                </button>
+                            </td>
+                        </tr>
+                        <tr class="table-row">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-8 w-8">
+                                        <div class="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center">
+                                            <i class="fas fa-server text-yellow-600 text-sm"></i>
+                                        </div>
+                                    </div>
+                                    <div class="ml-3">
+                                        <div class="text-sm font-medium text-gray-900">django-test-02-service</div>
+                                        <div class="text-sm text-gray-500">Port: 8000</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="status-badge status-deploying">
+                                    <i class="fas fa-clock mr-1"></i>
+                                    Deploying
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="health-unknown">
+                                    <i class="fas fa-question-circle mr-1"></i>
+                                    Unknown
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <div class="flex flex-col">
+                                    <span>CPU: 100m / 250m</span>
+                                    <span>Memory: 256Mi / 512Mi</span>
+                                    <span>Pods: 0/1</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                3 minutes ago
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button class="action-btn bg-blue-500 text-white hover:bg-blue-600 mr-2">
+                                    <i class="fas fa-eye mr-1"></i>View
+                                </button>
+                                <button class="action-btn bg-yellow-500 text-white hover:bg-yellow-600">
+                                    <i class="fas fa-clock mr-1"></i>Wait
+                                </button>
+                            </td>
+                        </tr>
+                        <tr class="table-row">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-8 w-8">
+                                        <div class="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center">
+                                            <i class="fas fa-server text-red-600 text-sm"></i>
+                                        </div>
+                                    </div>
+                                    <div class="ml-3">
+                                        <div class="text-sm font-medium text-gray-900">django-test-03-service</div>
+                                        <div class="text-sm text-gray-500">Port: 8000</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="status-badge status-failed">
+                                    <i class="fas fa-stop mr-1"></i>
+                                    Failed
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="health-unhealthy">
+                                    <i class="fas fa-heart-broken mr-1"></i>
+                                    Unhealthy
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <div class="flex flex-col">
+                                    <span>CPU: 0m / 250m</span>
+                                    <span>Memory: 0Mi / 512Mi</span>
+                                    <span>Pods: 0/1</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                8 minutes ago
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button class="action-btn bg-blue-500 text-white hover:bg-blue-600 mr-2">
+                                    <i class="fas fa-eye mr-1"></i>View
+                                </button>
+                                <button class="action-btn bg-red-500 text-white hover:bg-red-600">
+                                    <i class="fas fa-wrench mr-1"></i>Fix
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-12 py-6">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-gray-400">
+                <i class="fas fa-heart text-red-500"></i> 
+                Django Dev Portal Dashboard Template | 
+                <span class="text-purple-400">
+                    <i class="fas fa-code"></i> Ready to customize
+                </span>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Service Detail Modal -->
+    <div id="serviceModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="gradient-bg text-white px-6 py-4 flex items-center justify-between">
+                <h3 class="text-2xl font-bold flex items-center">
+                    <i class="fas fa-info-circle mr-3"></i>
+                    <span>Service Details</span>
+                </h3>
+                <button onclick="closeModal()" class="text-white hover:text-gray-200 transition">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-4">Service Information</h4>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Name:</span>
+                                <span class="font-medium">django-api-staging-service</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Namespace:</span>
+                                <span class="font-medium">django-api-staging</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Port:</span>
+                                <span class="font-medium">8000</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Status:</span>
+                                <span class="status-badge status-running">Running</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-4">Resource Usage</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-gray-600">CPU Usage</span>
+                                    <span class="font-medium">250m / 500m</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-blue-600 h-2 rounded-full" style="width: 50%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-gray-600">Memory Usage</span>
+                                    <span class="font-medium">512Mi / 1Gi</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-green-600 h-2 rounded-full" style="width: 51%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg max-w-2xl w-full">
+            <div class="gradient-bg text-white px-6 py-4 flex items-center justify-between">
+                <h3 class="text-2xl font-bold flex items-center">
+                    <i class="fas fa-edit mr-3"></i>
+                    Edit Service Resources
+                </h3>
+                <button onclick="closeEditModal()" class="text-white hover:text-gray-200 transition">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Memory Request</label>
+                            <select class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                <option value="128Mi">128Mi</option>
+                                <option value="256Mi" selected>256Mi</option>
+                                <option value="512Mi">512Mi</option>
+                                <option value="1Gi">1Gi</option>
+                                <option value="2Gi">2Gi</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Memory Limit</label>
+                            <select class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                <option value="256Mi">256Mi</option>
+                                <option value="512Mi">512Mi</option>
+                                <option value="1Gi" selected>1Gi</option>
+                                <option value="2Gi">2Gi</option>
+                                <option value="4Gi">4Gi</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">CPU Request</label>
+                            <select class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                <option value="100m">100m</option>
+                                <option value="250m" selected>250m</option>
+                                <option value="500m">500m</option>
+                                <option value="1000m">1000m</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">CPU Limit</label>
+                            <select class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                <option value="250m">250m</option>
+                                <option value="500m" selected>500m</option>
+                                <option value="1000m">1000m</option>
+                                <option value="2000m">2000m</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Replicas</label>
+                            <input type="number" value="2" min="1" max="10" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3 pt-4 border-t">
+                        <button type="button" onclick="closeEditModal()" class="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition">
+                            <i class="fas fa-save mr-2"></i>Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Demo JavaScript functions
+        function closeModal() {
+            document.getElementById('serviceModal').classList.add('hidden');
+        }
+        
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+        
+        // Add click handlers for demo buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click handlers to view buttons
+            const viewButtons = document.querySelectorAll('.action-btn');
+            viewButtons.forEach(button => {
+                if (button.innerHTML.includes('View')) {
+                    button.addEventListener('click', function() {
+                        document.getElementById('serviceModal').classList.remove('hidden');
+                    });
+                }
+                if (button.innerHTML.includes('Edit')) {
+                    button.addEventListener('click', function() {
+                        document.getElementById('editModal').classList.remove('hidden');
+                    });
+                }
+            });
+            
+            // Add click handlers to other action buttons
+            const actionButtons = document.querySelectorAll('button');
+            actionButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    if (button.innerHTML.includes('Refresh') || 
+                        button.innerHTML.includes('Sync') || 
+                        button.innerHTML.includes('Check') ||
+                        button.innerHTML.includes('Toggle')) {
+                        e.preventDefault();
+                        // Show demo alert
+                        Swal.fire({
+                            title: 'Demo Action',
+                            text: 'This is a demo template. In a real application, this would perform the actual action.',
+                            icon: 'info',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
