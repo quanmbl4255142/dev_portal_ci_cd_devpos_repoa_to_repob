@@ -397,6 +397,11 @@ on:
     branches: [ main ]
   workflow_dispatch: # Cho phép chạy thủ công
 
+# Concurrency control để tránh multiple workflows chạy cùng lúc
+concurrency:
+  group: update-manifests-${{{{ github.ref }}}}
+  cancel-in-progress: false  # Không cancel workflow đang chạy, chờ nó hoàn thành
+
 env:
   REGISTRY: {self.config.docker_registry}
   IMAGE_NAME: ${{{{ github.repository }}}}
@@ -699,6 +704,9 @@ jobs:
         # Define app_name variable
         APP_NAME="{app_name}"
         
+        # Set remote URL with token
+        git remote set-url origin https://${{{{ secrets.PAT_TOKEN }}}}@github.com/{repo_b_user}/{repo_b_name}.git
+        
         # Add apps directory
         git add apps/$APP_NAME/ || echo "⚠️ No new files to add"
         
@@ -712,9 +720,92 @@ jobs:
         else
           # Commit changes
           git commit -m "chore: update k8s manifests for {app_name} [skip ci]"
-          git remote set-url origin https://${{{{ secrets.PAT_TOKEN }}}}@github.com/{repo_b_user}/{repo_b_name}.git
-          git push origin main
-          echo "✅ Successfully pushed manifests to Repository_B"
+          
+          # Push with retry logic để handle intermittent failures
+          echo "🚀 Pushing changes..."
+          for i in {{1..3}}; do
+            echo "Attempt $i/3..."
+            if git push origin main; then
+              echo "✅ Successfully pushed manifests to Repository_B"
+              break
+            else
+              echo "⚠️ Push failed (attempt $i/3)"
+              if [ $i -lt 3 ]; then
+                echo "🔄 Waiting 5 seconds before retry..."
+                sleep 5
+                echo "🔄 Fetching latest changes before retry..."
+                git fetch origin main
+                echo "🔄 Resetting to remote main..."
+                git reset --hard origin/main
+                echo "🔄 Re-adding changes..."
+                git add apps/$APP_NAME/
+                git commit -m "chore: update k8s manifests for {app_name} [skip ci]"
+              else
+                echo "❌ All push attempts failed"
+                exit 1
+              fi
+            fi
+          done
+        fi
+        
+    - name: Trigger ArgoCD Sync
+      run: |
+        # Define app_name variable
+        APP_NAME="{app_name}"
+        
+        echo "🔄 Triggering ArgoCD sync for $APP_NAME..."
+        
+        # Get ArgoCD server URL và token
+        ARGOCD_SERVER="${{{{ secrets.ARGOCD_SERVER }}}}"
+        ARGOCD_TOKEN="${{{{ secrets.ARGOCD_TOKEN }}}}"
+        
+        if [ -n "$ARGOCD_SERVER" ] && [ -n "$ARGOCD_TOKEN" ]; then
+          echo "🚀 Syncing ArgoCD application: $APP_NAME"
+          
+          # Method 1: Direct ArgoCD API sync
+          echo "📡 Method 1: Direct ArgoCD API sync"
+          curl -X POST \
+            -H "Authorization: Bearer $ARGOCD_TOKEN" \
+            -H "Content-Type: application/json" \
+            "$ARGOCD_SERVER/api/v1/applications/$APP_NAME/sync" \
+            -d '{{
+              "prune": true,
+              "dryRun": false,
+              "strategy": {{
+                "syncStrategy": "apply"
+              }}
+            }}' || echo "⚠️ ArgoCD API sync failed"
+          
+          # Method 2: Refresh ApplicationSet để detect app mới
+          echo "📡 Method 2: Refresh ApplicationSet"
+          curl -X POST \
+            -H "Authorization: Bearer $ARGOCD_TOKEN" \
+            -H "Content-Type: application/json" \
+            "$ARGOCD_SERVER/api/v1/applicationsets/django-apps/refresh" \
+            -d '{{}}' || echo "⚠️ ApplicationSet refresh failed"
+          
+          # Method 3: Trigger via GitHub Webhook (if Dev Portal is running)
+          echo "📡 Method 3: Trigger via GitHub Webhook"
+          DEV_PORTAL_URL="${{{{ secrets.DEV_PORTAL_URL }}}}"
+          if [ -n "$DEV_PORTAL_URL" ]; then
+            curl -X POST \
+              -H "Content-Type: application/json" \
+              "$DEV_PORTAL_URL/api/webhook/github" \
+              -d '{{
+                "repository": {{
+                  "clone_url": "https://github.com/{repo_b_user}/{repo_b_name}.git"
+                }},
+                "commits": [{{
+                  "added": ["apps/$APP_NAME/"],
+                  "modified": ["apps/$APP_NAME/"]
+                }}]
+              }}' || echo "⚠️ GitHub webhook trigger failed"
+          fi
+          
+          echo "✅ ArgoCD sync triggered for $APP_NAME"
+        else
+          echo "⚠️ ArgoCD credentials not configured, skipping sync"
+          echo "ℹ️ Please configure ARGOCD_SERVER and ARGOCD_TOKEN secrets"
         fi
         
     - name: Notify Deployment Completion
@@ -724,7 +815,7 @@ jobs:
         
         echo "✅ CI/CD Pipeline completed successfully!"
         echo "📦 Docker image built and pushed to: ${{{{ env.REGISTRY }}}}/${{{{ env.IMAGE_NAME }}}}:latest"
-        echo "🔄 ArgoCD Image Updater sẽ tự động update deployment.yaml"
+        echo "🔄 ArgoCD sync triggered for $APP_NAME"
         echo "📝 ArgoCD sẽ tự động sync và deploy"
         echo ""
         echo "🌐 Access UIs:"
@@ -1369,6 +1460,8 @@ async def generate_and_deploy(config: AutoDeployConfig):
                 private=config.repo_a_private
             )
             
+            print(f"✅ Repository created: {repo_info['html_url']}")
+            
             # Step 2b: Add PAT_TOKEN secret BEFORE pushing workflow file
             # This ensures secret exists when workflow triggers
             if project_config.enable_cicd:
@@ -1387,11 +1480,13 @@ async def generate_and_deploy(config: AutoDeployConfig):
                 time.sleep(2)  # Wait for secret to propagate
             
             # Step 2c: Now push code (workflow will have access to secret)
+            print(f"🚀 Pushing {len(project_files)} files to new repository...")
             push_result = gh_manager.push_files(
                 repo_name=config.repo_a_name,
                 files=project_files,
                 commit_message="Initial commit from Dev Portal"
             )
+            print(f"📊 Push result: {len(push_result)} operations")
             repo_result = {
                 "repository": repo_info,
                 "push_results": {
@@ -1402,11 +1497,13 @@ async def generate_and_deploy(config: AutoDeployConfig):
                 }
             }
         else:
+            print(f"🔄 Updating existing repository with {len(project_files)} files...")
             repo_result = gh_manager.push_files(
                 repo_name=config.repo_a_name,
                 files=project_files,
                 commit_message="Update from Dev Portal"
             )
+            print(f"📊 Update result: {len(repo_result)} operations")
             repo_result = {
                 "repository": {
                     "html_url": f"https://github.com/{project_config.github_username}/{config.repo_a_name}"

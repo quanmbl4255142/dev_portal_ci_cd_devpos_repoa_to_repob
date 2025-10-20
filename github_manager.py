@@ -243,12 +243,15 @@ class GitHubManager:
             }
     
     
-    """Push nhiều files lên repository - thử batch trước, fallback individual"""
+    """Push nhiều files lên repository - chỉ dùng batch push để tránh multiple workflow runs"""
     def push_files(self, repo_name: str, files: Dict[str, str], 
                    commit_message: str = "Initial commit from Dev Portal",
                    branch: str = "main") -> List[Dict]:
         
-        # Thử batch push trước
+        print(f"🚀 Pushing {len(files)} files to {repo_name} with message: '{commit_message}'")
+        print(f"📁 Files to push: {list(files.keys())}")
+        
+        # Chỉ dùng batch push để đảm bảo 1 commit = 1 workflow run
         batch_result = self.push_files_batch(repo_name, files, commit_message, branch)
         
         if batch_result["status"] == "success":
@@ -260,9 +263,15 @@ class GitHubManager:
                 "commit_sha": batch_result["commit_sha"]
             }]
         else:
-            # Batch thất bại - fallback về individual push
-            print(f"Batch push failed: {batch_result['error']}, falling back to individual push")
-            return self._push_files_individual(repo_name, files, commit_message, branch)
+            # Batch thất bại - KHÔNG fallback để tránh multiple workflow runs
+            print(f"❌ Batch push failed: {batch_result['error']}")
+            print("⚠️ Không fallback về individual push để tránh multiple workflow runs")
+            return [{
+                "file": "batch_push",
+                "status": "error",
+                "error": batch_result["error"],
+                "message": "Batch push failed - không fallback để tránh multiple workflow runs"
+            }]
     
     
     """Fallback: Push từng file riêng lẻ"""
