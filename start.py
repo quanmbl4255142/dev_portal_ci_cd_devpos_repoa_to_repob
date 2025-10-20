@@ -14,8 +14,8 @@ async def main():
     """Main function"""
     try:
         print("🚀 Starting Django Dev Portal...")
-        print("📊 Dashboard: http://localhost:8080/static/dashboard.html")
-        print("📚 API Docs: http://localhost:8080/docs")
+        print("📊 Dashboard: http://localhost:8090/static/dashboard.html")
+        print("📚 API Docs: http://localhost:8090/docs")
         print("🔄 Auto sync will start automatically")
         print("=" * 50)
         
@@ -26,7 +26,7 @@ async def main():
         config = uvicorn.Config(
             "main:app",
             host="0.0.0.0",
-            port=8080,
+            port=8090,
             log_level="info",
             reload=False
         )

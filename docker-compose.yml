@@ -5,12 +5,12 @@ services:
     build: .
     container_name: django-dev-portal
     ports:
-      - "8090:8080"
+      - "8090:8090"
     environment:
       - PYTHONUNBUFFERED=1
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      test: ["CMD", "curl", "-f", "http://localhost:8090/"]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -164,8 +164,8 @@ async def get_auto_sync_service() -> AutoSyncService:
     if auto_sync_service is None:
         # ArgoCD URL - Cung cấp URL ArgoCD thật để bật auto sync
         # Thay đổi URL theo môi trường thật của bạn:
-        argocd_url = "http://localhost:8081"  # ArgoCD server qua port-forward
-        argocd_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhcmdvY2QiLCJzdWIiOiJhZG1pbjpsb2dpbiIsImV4cCI6MTc2MDk3NTYzOSwibmJmIjoxNzYwODg5MjM5LCJpYXQiOjE3NjA4ODkyMzksImp0aSI6ImVhOTU3Yjk0LWQ5NDUtNGFlNS1hMzZlLThjMTQ2Njk4YTNiZiJ9.nnATidxucW2IGBtYSaIQNb-az4OLLbyXl_-eSwGl1rA"
+        argocd_url = "https://localhost:8082"  # ArgoCD server qua port-forward
+        argocd_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhcmdvY2QiLCJzdWIiOiJhZG1pbjpsb2dpbiIsImV4cCI6MTc2MTAxMzcyMywibmJmIjoxNzYwOTI3MzIzLCJpYXQiOjE3NjA5MjczMjMsImp0aSI6ImMwMDdhZjBjLTgxNTctNDBlYS04YTJjLWIxZTM3MDNjY2IwOCJ9.9c_1Wd6Zh1x0PY0Vs3LZp7ztcNNAoGtjbeO2TXeCg80"
         # argocd_url = "http://127.0.0.1:8090"  # Port 8090 như bạn đang chạy
         # argocd_url = "https://your-argocd-url.com"  # URL thật của bạn
         # argocd_url = None  # Tắt auto sync nếu không có ArgoCD

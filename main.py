@@ -728,8 +728,8 @@ jobs:
         echo ""
         echo "🌐 Access UIs:"
         echo "  📊 ArgoCD UI:"
-        echo "    kubectl port-forward svc/argocd-server -n argocd 8080:443"
-        echo "    → https://localhost:8080"
+        echo "    kubectl port-forward svc/argocd-server -n argocd 8090:443"
+        echo "    → https://localhost:8090"
         echo "    Username: admin"
         echo "    Password: kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{{.data.password}}' | base64 -d"
         echo ""
@@ -1316,7 +1316,7 @@ kubectl apply -f argocd-apps/{app_name}-app.yaml
 
 
 @app.post("/api/generate-and-deploy")
-async def generate_and_deploy(config: AutoDeployConfig):
+async def generate_and_deploy(config: AutoDeployConfig):    
     """
     🚀 TỰ ĐỘNG HOÀN TOÀN: Generate project → Push Git → Deploy ArgoCD
     """
@@ -1751,5 +1751,5 @@ async def shutdown_event():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    uvicorn.run(app, host="0.0.0.0", port=8090)
 
