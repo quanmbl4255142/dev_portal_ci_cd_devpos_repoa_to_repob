@@ -2,7 +2,7 @@
 Dev Portal - Tự động sinh Django REST API Project
 Tạo bởi: Dev Portal Tool
 """
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
@@ -19,6 +19,7 @@ from github_manager import GitHubManager
 from mongodb_client import get_mongodb_client
 from argo_sync_service import get_sync_service
 from auto_sync_service import get_auto_sync_service, force_sync_now
+from github_webhook_handler import github_webhook_endpoint, webhook_health_check
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -1712,6 +1713,17 @@ async def argocd_webhook(payload: dict, background_tasks: BackgroundTasks):
     except Exception as e:
         logger.error(f"Error processing ArgoCD webhook: {e}")
         raise HTTPException(status_code=500, detail=f"Error processing webhook: {str(e)}")
+
+# GitHub webhook endpoint để trigger ArgoCD sync ngay lập tức
+@app.post("/api/webhook/github")
+async def github_webhook(request: Request):
+    """GitHub webhook endpoint để trigger ArgoCD sync ngay lập tức khi có push vào repository_B"""
+    return await github_webhook_endpoint(request)
+
+@app.get("/api/webhook/health")
+async def webhook_health():
+    """Webhook health check"""
+    return await webhook_health_check()
 
 # Startup event to initialize MongoDB connection
 @app.on_event("startup")
