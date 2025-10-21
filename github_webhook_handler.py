@@ -5,6 +5,7 @@ import asyncio
 import logging
 import aiohttp
 from typing import Dict, Any
+import os
 from fastapi import FastAPI, Request, HTTPException
 import hmac
 import hashlib
@@ -20,6 +21,8 @@ class GitHubWebhookHandler:
         self.argocd_token = argocd_token
         self.webhook_secret = webhook_secret
         self.session: aiohttp.ClientSession = None
+        # Cho phép cấu hình tên ApplicationSet qua ENV, mặc định 'django-apps'
+        self.applicationset_name = os.getenv("ARGOCD_APPLICATIONSET", "django-apps")
         
     async def start_session(self):
         """Start aiohttp session"""
@@ -30,9 +33,11 @@ class GitHubWebhookHandler:
             if self.argocd_token:
                 headers['Authorization'] = f'Bearer {self.argocd_token}'
             
+            # Bỏ kiểm tra SSL để hỗ trợ ArgoCD với self-signed cert (https://127.0.0.1)
             self.session = aiohttp.ClientSession(
                 headers=headers,
-                timeout=aiohttp.ClientTimeout(total=30)
+                timeout=aiohttp.ClientTimeout(total=30),
+                connector=aiohttp.TCPConnector(ssl=False)
             )
     
     async def close_session(self):
@@ -87,6 +92,23 @@ class GitHubWebhookHandler:
         except Exception as e:
             logger.error(f"Error triggering ArgoCD sync: {e}")
             return False
+
+    async def refresh_applicationset(self) -> bool:
+        """Force refresh ApplicationSet để phát hiện app mới nhanh hơn"""
+        try:
+            if not self.session:
+                await self.start_session()
+            url = f"{self.argocd_server_url}/api/v1/applicationsets/{self.applicationset_name}/refresh"
+            async with self.session.post(url, json={}) as response:
+                if response.status in [200, 201]:
+                    logger.info(f"ApplicationSet '{self.applicationset_name}' refresh triggered")
+                    return True
+                else:
+                    logger.error(f"ApplicationSet refresh failed: {response.status} - {await response.text()}")
+                    return False
+        except Exception as e:
+            logger.error(f"Error refreshing ApplicationSet: {e}")
+            return False
     
     async def handle_push_event(self, payload: Dict[str, Any]) -> bool:
         """Handle GitHub push event"""
@@ -119,6 +141,10 @@ class GitHubWebhookHandler:
             
             if apps_changed:
                 logger.info(f"Detected changes in apps/ folder. New/updated apps: {new_apps}")
+                
+                # Refresh ApplicationSet trước để app mới được tạo ngay
+                await self.refresh_applicationset()
+                await asyncio.sleep(1)
                 
                 # Trigger sync cho từng app mới/cập nhật
                 for app_name in new_apps:
@@ -177,9 +203,23 @@ async def get_webhook_handler() -> GitHubWebhookHandler:
     global webhook_handler
     
     if webhook_handler is None:
-        argocd_url = "https://localhost:8082"  # ArgoCD server URL
-        argocd_token = "your-argocd-token"  # ArgoCD token
-        webhook_secret = "your-webhook-secret"  # GitHub webhook secret
+        # Read configuration from environment variables
+        # ARGOCD_SERVER: e.g. https://argocd.example.com or https://localhost:8082 (via port-forward)
+        # ARGOCD_TOKEN: Bearer token for ArgoCD API
+        # GITHUB_WEBHOOK_SECRET: GitHub webhook secret (must match Repo B webhook)
+        argocd_url = os.getenv("ARGOCD_SERVER", "")
+        argocd_token = os.getenv("ARGOCD_TOKEN", "")
+        webhook_secret = os.getenv("GITHUB_WEBHOOK_SECRET", "")
+        if not argocd_url:
+            logger.warning("ARGOCD_SERVER is not set; ArgoCD sync via webhook will be skipped")
+        if not argocd_token:
+            logger.warning("ARGOCD_TOKEN is not set; ArgoCD sync may be unauthorized")
+        if not webhook_secret:
+            logger.warning("GITHUB_WEBHOOK_SECRET is not set; webhook signature verification disabled")
+        
+        # Fallback minimal defaults for local testing
+        if not argocd_url:
+            argocd_url = "https://localhost:8082"
         
         webhook_handler = GitHubWebhookHandler(argocd_url, argocd_token, webhook_secret)
         await webhook_handler.start_session()

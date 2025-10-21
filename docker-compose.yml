@@ -8,6 +8,9 @@ services:
       - "8090:8090"
     environment:
       - PYTHONUNBUFFERED=1
+      - ARGOCD_SERVER=http://host.docker.internal:8082
+      - ARGOCD_TOKEN=7bdqyA-BSjEDyy23
+      - AUTO_SYNC_INTERVAL=30
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8090/"]

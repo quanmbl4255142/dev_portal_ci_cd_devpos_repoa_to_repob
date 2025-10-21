@@ -399,8 +399,8 @@ on:
 
 # Concurrency control để tránh multiple workflows chạy cùng lúc
 concurrency:
-  group: update-manifests-${{{{ github.ref }}}}
-  cancel-in-progress: false  # Không cancel workflow đang chạy, chờ nó hoàn thành
+  group: django-cicd-${{{{ github.repository }}}}-${{{{ github.ref }}}}
+  cancel-in-progress: true  # Cancel workflow cũ nếu có workflow mới
 
 env:
   REGISTRY: {self.config.docker_registry}
@@ -475,6 +475,14 @@ jobs:
       
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
+      continue-on-error: true
+      
+    - name: Retry Docker Buildx setup if failed
+      if: failure()
+      uses: docker/setup-buildx-action@v3
+      with:
+        driver-opts: |
+          image=moby/buildkit:buildx-stable-1
       
     - name: Log in to Container Registry
       uses: docker/login-action@v3
@@ -508,6 +516,20 @@ jobs:
           BUILDKIT_INLINE_CACHE=1
       # Continue on error để debug
       continue-on-error: true
+      
+    - name: Retry Docker build if failed
+      if: failure()
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        platforms: linux/amd64
+        push: true
+        tags: ${{{{ steps.meta.outputs.tags }}}}
+        labels: ${{{{ steps.meta.outputs.labels }}}}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          BUILDKIT_INLINE_CACHE=1
       
     - name: Check build result
       run: |
@@ -974,9 +996,8 @@ htmlcov/
 .flake8
 '''
         
-        # GitHub Actions workflow
-        if self.config.enable_cicd:
-            files['.github/workflows/ci-cd.yml'] = self.generate_github_workflow()
+        # GitHub Actions workflow - luôn tạo để đảm bảo CI/CD hoạt động
+        files['.github/workflows/ci-cd.yml'] = self.generate_github_workflow()
         
         # README - Generate API endpoints documentation
         endpoints_docs = []
@@ -1529,6 +1550,23 @@ async def generate_and_deploy(config: AutoDeployConfig):
             result["steps"][-1]["workflow_runs"] = f"{repo_result['push_results']['success']} (individual commits)"
         result["repository_a"] = repo_result["repository"]
         
+        # Step 2.55: Ensure a single workflow run (prefer push-trigger; fallback to manual)
+        if project_config.enable_cicd:
+            try:
+                import time as _time
+                # Chờ ngắn để GitHub ghi nhận push-trigger
+                _time.sleep(3)
+                latest = gh_manager.get_latest_workflow_run(repo_name=config.repo_a_name, workflow_file="ci-cd.yml")
+                if latest.get("status") == "error" and "No workflow runs" in latest.get("message", ""):
+                    print("ℹ️ No push-triggered run detected, triggering manually...")
+                    trigger = gh_manager.trigger_workflow(repo_name=config.repo_a_name, workflow_file="ci-cd.yml", branch="main")
+                    print(f"🧪 Trigger workflow result: {trigger}")
+                    _time.sleep(2)
+                else:
+                    print("✅ Push-triggered workflow detected; skip manual trigger to avoid duplicates")
+            except Exception as _e:
+                print(f"⚠️ Unable to check/trigger workflow: {_e}")
+        
         # Step 2.6: Wait for GitHub Actions to build Docker image
         if project_config.enable_cicd:
             result["steps"].append({"step": "wait_github_actions", "status": "processing"})
@@ -1754,7 +1792,10 @@ async def start_continuous_sync(background_tasks: BackgroundTasks):
         
         # Sử dụng auto sync service
         auto_sync = await get_auto_sync_service()
-        sync_task = asyncio.create_task(auto_sync.start_auto_sync())
+        if auto_sync:
+            sync_task = asyncio.create_task(auto_sync.start_auto_sync())
+        else:
+            return {"status": "error", "message": "Auto sync service not available - ARGOCD_SERVER not configured"}
         return {"status": "success", "message": "Continuous sync started"}
     except Exception as e:
         logger.error(f"Error starting continuous sync: {e}")
@@ -1767,7 +1808,8 @@ async def stop_continuous_sync():
     try:
         if sync_task and not sync_task.done():
             auto_sync = await get_auto_sync_service()
-            await auto_sync.stop_auto_sync()
+            if auto_sync:
+                await auto_sync.stop_auto_sync()
             sync_task.cancel()
             sync_task = None
             return {"status": "success", "message": "Continuous sync stopped"}
@@ -1833,9 +1875,12 @@ async def startup_event():
         
         # Start auto sync service
         auto_sync = await get_auto_sync_service()
-        global sync_task
-        sync_task = asyncio.create_task(auto_sync.start_auto_sync())
-        logger.info("Auto ArgoCD sync started - sẽ tự động lấy dữ liệu mới mỗi 30 giây")
+        if auto_sync:
+            global sync_task
+            sync_task = asyncio.create_task(auto_sync.start_auto_sync())
+            logger.info("Auto ArgoCD sync started - sẽ tự động lấy dữ liệu mới mỗi 30 giây")
+        else:
+            logger.info("Auto ArgoCD sync disabled - ARGOCD_SERVER not configured")
         
     except Exception as e:
         logger.error(f"Error during startup: {e}")
@@ -1849,7 +1894,8 @@ async def shutdown_event():
         if sync_task and not sync_task.done():
             sync_task.cancel()
             auto_sync = await get_auto_sync_service()
-            await auto_sync.stop_auto_sync()
+            if auto_sync:
+                await auto_sync.stop_auto_sync()
         
         mongodb = await get_mongodb_client()
         await mongodb.disconnect()

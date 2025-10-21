@@ -110,15 +110,14 @@ class GitHubManager:
             base_tree_sha = commit_response.json()["tree"]["sha"]
             
             # 3. Create tree với tất cả files
-            import base64
+            # LƯU Ý: Git Trees API mong đợi raw content (KHÔNG base64 encode)
             tree_items = []
             for file_path, content in files.items():
-                content_encoded = base64.b64encode(content.encode()).decode()
                 tree_items.append({
                     "path": file_path,
                     "mode": "100644",
                     "type": "blob",
-                    "content": content_encoded
+                    "content": content
                 })
             
             tree_data = {
@@ -179,16 +178,14 @@ class GitHubManager:
     def _create_initial_commit(self, repo_name: str, files: Dict[str, str], commit_message: str) -> Dict:
         
         try:
-            # 1. Create tree với tất cả files
-            import base64
+            # 1. Create tree với tất cả files (raw content cho Git Trees API)
             tree_items = []
             for file_path, content in files.items():
-                content_encoded = base64.b64encode(content.encode()).decode()
                 tree_items.append({
                     "path": file_path,
                     "mode": "100644",
                     "type": "blob",
-                    "content": content_encoded
+                    "content": content
                 })
             
             tree_data = {
@@ -243,7 +240,7 @@ class GitHubManager:
             }
     
     
-    """Push nhiều files lên repository - chỉ dùng batch push để tránh multiple workflow runs"""
+    """Push nhiều files lên repository - thử batch trước, fallback individual nếu cần"""
     def push_files(self, repo_name: str, files: Dict[str, str], 
                    commit_message: str = "Initial commit from Dev Portal",
                    branch: str = "main") -> List[Dict]:
@@ -251,11 +248,12 @@ class GitHubManager:
         print(f"🚀 Pushing {len(files)} files to {repo_name} with message: '{commit_message}'")
         print(f"📁 Files to push: {list(files.keys())}")
         
-        # Chỉ dùng batch push để đảm bảo 1 commit = 1 workflow run
+        # Thử batch push trước
         batch_result = self.push_files_batch(repo_name, files, commit_message, branch)
         
         if batch_result["status"] == "success":
             # Batch thành công - chỉ có 1 commit, 1 workflow run
+            print(f"✅ Batch push successful: {batch_result['message']}")
             return [{
                 "file": "batch_push",
                 "status": "success",
@@ -263,24 +261,28 @@ class GitHubManager:
                 "commit_sha": batch_result["commit_sha"]
             }]
         else:
-            # Batch thất bại - KHÔNG fallback để tránh multiple workflow runs
-            print(f"❌ Batch push failed: {batch_result['error']}")
-            print("⚠️ Không fallback về individual push để tránh multiple workflow runs")
-            return [{
-                "file": "batch_push",
-                "status": "error",
-                "error": batch_result["error"],
-                "message": "Batch push failed - không fallback để tránh multiple workflow runs"
-            }]
+            # Batch thất bại - luôn fallback về individual push để đảm bảo files được đẩy lên
+            print(f"⚠️ Batch push failed: {batch_result.get('error', 'unknown error')}")
+            print("🔄 Falling back to individual push (safe fallback)...")
+            individual_results = self._push_files_individual(repo_name, files, commit_message, branch)
+            success_count = sum(1 for r in individual_results if r["status"] == "success")
+            print(f"📊 Individual push completed: {success_count}/{len(individual_results)} files successful")
+            return individual_results
     
     
-    """Fallback: Push từng file riêng lẻ"""
+    """Fallback: Push từng file riêng lẻ nhưng chỉ tạo 1 commit"""
     def _push_files_individual(self, repo_name: str, files: Dict[str, str], 
                               commit_message: str, branch: str) -> List[Dict]:
         
         results = []
+        success_count = 0
         
-        for file_path, content in files.items():
+        # Push workflow file đầu tiên để enable Actions, sau đó push các file khác
+        workflow_files = {k: v for k, v in files.items() if k.startswith('.github/workflows/')}
+        other_files = {k: v for k, v in files.items() if not k.startswith('.github/workflows/')}
+        
+        # Push workflow files trước với commit message chính
+        for file_path, content in workflow_files.items():
             try:
                 result = self.create_or_update_file(
                     repo_name=repo_name,
@@ -294,7 +296,36 @@ class GitHubManager:
                     "status": "success",
                     "url": result.get("content", {}).get("html_url", "")
                 })
-                time.sleep(0.1)
+                success_count += 1
+                time.sleep(1)  # Delay để đảm bảo workflow được enable
+                print(f"✅ Workflow file pushed: {file_path}")
+            except Exception as e:
+                results.append({
+                    "file": file_path,
+                    "status": "error",
+                    "error": str(e)
+                })
+                print(f"❌ Workflow file push failed: {file_path} - {e}")
+        
+        # Push các file khác với [skip ci]
+        for i, (file_path, content) in enumerate(other_files.items()):
+            try:
+                current_message = f"Add {file_path} [skip ci]"
+                
+                result = self.create_or_update_file(
+                    repo_name=repo_name,
+                    file_path=file_path,
+                    content=content,
+                    message=current_message,
+                    branch=branch
+                )
+                results.append({
+                    "file": file_path,
+                    "status": "success",
+                    "url": result.get("content", {}).get("html_url", "")
+                })
+                success_count += 1
+                time.sleep(0.2)  # Tăng delay để tránh rate limit
             except Exception as e:
                 results.append({
                     "file": file_path,
@@ -302,6 +333,7 @@ class GitHubManager:
                     "error": str(e)
                 })
         
+        print(f"✅ Individual push completed: {success_count} files successful")
         return results
     
     

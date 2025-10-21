@@ -27,10 +27,15 @@ class ArgoCDDataFetcher:
                 'Content-Type': 'application/json'
             }
             
-            # Sử dụng cookie thay vì token
+            # Sử dụng basic auth hoặc cookie
             cookies = {}
             if self.argocd_token:
-                cookies['argocd.token'] = self.argocd_token
+                # Thử basic auth trước
+                import base64
+                auth_string = f"admin:{self.argocd_token}"
+                auth_bytes = auth_string.encode('ascii')
+                auth_b64 = base64.b64encode(auth_bytes).decode('ascii')
+                headers['Authorization'] = f'Basic {auth_b64}'
             
             self.session = aiohttp.ClientSession(
                 headers=headers,

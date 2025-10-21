@@ -9,6 +9,7 @@ from typing import Dict, List, Any, Optional
 import aiohttp
 import json
 from argo_data_fetcher import ArgoCDDataFetcher
+import os
 from mongodb_client import get_mongodb_client
 
 logger = logging.getLogger(__name__)
@@ -162,19 +163,24 @@ async def get_auto_sync_service() -> AutoSyncService:
     global auto_sync_service
     
     if auto_sync_service is None:
-        # ArgoCD URL - Cung cấp URL ArgoCD thật để bật auto sync
-        # Thay đổi URL theo môi trường thật của bạn:
-        argocd_url = "https://localhost:8082"  # ArgoCD server qua port-forward
-        argocd_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhcmdvY2QiLCJzdWIiOiJhZG1pbjpsb2dpbiIsImV4cCI6MTc2MTAxMzcyMywibmJmIjoxNzYwOTI3MzIzLCJpYXQiOjE3NjA5MjczMjMsImp0aSI6ImMwMDdhZjBjLTgxNTctNDBlYS04YTJjLWIxZTM3MDNjY2IwOCJ9.9c_1Wd6Zh1x0PY0Vs3LZp7ztcNNAoGtjbeO2TXeCg80"
-        # argocd_url = "http://127.0.0.1:8090"  # Port 8090 như bạn đang chạy
-        # argocd_url = "https://your-argocd-url.com"  # URL thật của bạn
-        # argocd_url = None  # Tắt auto sync nếu không có ArgoCD
-        if argocd_url:
-            auto_sync_service = AutoSyncService(argocd_url, argocd_token, poll_interval=30)
-            await auto_sync_service.start_session()
-        else:
-            # Tạo dummy service khi không có ArgoCD URL
+        # Đọc cấu hình từ biến môi trường thay cho hardcode
+        # ARGOCD_SERVER ví dụ: https://argocd.example.com hoặc https://localhost:8082 (port-forward)
+        # ARGOCD_TOKEN: token đăng nhập ArgoCD (Bearer) hoặc để trống nếu public
+        argocd_url = os.getenv("ARGOCD_SERVER", "")
+        argocd_token = os.getenv("ARGOCD_TOKEN", "")
+        poll_interval = int(os.getenv("AUTO_SYNC_INTERVAL", "30") or 30)
+        
+        if not argocd_url:
+            logger.warning("⚠️ Auto sync disabled - missing ARGOCD_SERVER. Set env ARGOCD_SERVER to enable.")
             auto_sync_service = None
+        else:
+            auto_sync_service = AutoSyncService(argocd_url, argocd_token, poll_interval=poll_interval)
+            try:
+                await auto_sync_service.start_session()
+                logger.info(f"Auto sync configured for {argocd_url} with interval {poll_interval}s")
+            except Exception as e:
+                logger.error(f"Failed to start auto sync session: {e}")
+                auto_sync_service = None
     
     return auto_sync_service
 
