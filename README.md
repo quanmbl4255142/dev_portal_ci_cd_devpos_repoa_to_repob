@@ -17,6 +17,8 @@ Dev Portal Service cung cấp tính năng **Auto Deploy hoàn toàn tự động
 ## 🔄 Luồng hoạt động chi tiết
 
 ### 📊 Sequence Diagram
+
+```mermaid
 sequenceDiagram
     participant User as 👤 User
     participant Portal as 🌐 Dev Portal
@@ -112,6 +114,8 @@ sequenceDiagram
             ArgoCD->>K8s: Sync & Deploy
         end
     end
+```
+
 ---
 
 ## 🔧 Chi tiết các bước
